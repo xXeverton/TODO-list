@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+
+# Distribuição
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+# PyInstaller cria uma pasta chamada `dist`
+# e arquivos de log
+*.manifest
+*.spec
+
+# Arquivos de ambiente e credenciais
+.env
+.env.*
+*.env
+secrets.json
+config.yaml
+
+# Logs
+*.log
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Testes
+.coverage
+.tox/
+.nox/
+.cache/
+pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
