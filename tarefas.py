@@ -1,93 +1,102 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
+# tarefas.py
 
-This is a temporary script file.
-""" 
+__all__ = ["criaTarefa", "consultaTarefa", "editaTarefa", "apagaTarefa", "limpaTarefas"]
 
-#Lista de todas as tarefas criadas
-listaTarefas = []
+from datetime import datetime
+
+tarefas = []  # Lista em memória de tarefas
+
+# Tem que colocar aquele formato de descricoes ainda para TODAS AS FUNCOES!
+
+def limpaTarefas():
+    tarefas.clear()  # Limpa a lista de tarefas para testes
 
 
-def titulo_valido(titulo: str):
-    #Retorna 0 caso o titulo seja valido ou um numero diferente de 0 se for invalido
-    
-    if (titulo.strip() == ""):        
-        #Titulo vazio
-        return 2 
-    
-    if len(titulo) > 50:
-        #Titulo excede limite de caractere
-        return 5
-    
-    for tarefa in listaTarefas:
+def consultaTarefa(titulo: str) -> tuple[int, dict]:
+    for tarefa in tarefas:
         if tarefa["titulo"] == titulo:
-            #Titulo duplicado
-            return 1
-    
-    #Titulo valido
-    return 0
+            return 0, tarefa
+    return 1, {}
 
-def validaIntervalo(data_inicio: str, data_vencimento: str):
-    #Função recebe duas datas existentes e avalia se estão no formato correto e se a data de inicio é
-    #depois da data de vencimento
-    
-    data1 = data_inicio.split("/")
-    data2 = data_vencimento.split("/")
-    
-    if len(data1[2]) != 4 and len(data2[2]) != 4:
-        #Data no formato incorreto (Ex: dd/mm/aa, aa/mm/dd)
-        return 4
-    
-    for i in range(3):
-        data1[i] = int(data1[i])
-        data2[i] = int(data2[i])
-    
-    for i in range(2, -1, -1):
-        if data1[i] > data2[i]:
-            #Data inicial depois da final
-            return 4
-        if data1[i] < data2[i]:
-            #Data Valida
-            return 0
-        
-    #Data Valida
-    return 0
 
 def criaTarefa(titulo: str, descricao: str, prioridade: int, data_inicio: str, data_vencimento: str) -> int:
-    #Cria uma tarefa em formato de dicionario
-    #retorna 0 se não ocorreu erros, 1 se titulo for duplicado, 2 se for um titulo vazio, 3 prioridade invalida,
-    #4 data invalida, 5 titulo excede limite de caractere e 6 descrição excede limite de caractere
-    
-    #Valida titulo
-    statusTitulo = titulo_valido(titulo)
-    
-    if statusTitulo:
-        #Titulo Invalido
-        return statusTitulo
-    
+    if titulo.strip() == "":
+        return 2  # Título vazio
+    if len(titulo) > 50:
+        return 5  # Título muito longo
+    if consultaTarefa(titulo)[0] == 0:
+        return 1  # Título duplicado
     if len(descricao) > 250:
-        #Descrição excede limite de caractere
-        return 6
-    
-    if prioridade < 0 or prioridade > 4:
-        #Prioridade invalida
-        return 3
-    
-    #Valida data
-    statusData = validaIntervalo(data_inicio, data_vencimento)
-    
-    if statusData:
-        #Data Invalida
-        return statusData
-    
-    novaTarefa = {"titulo": titulo, 
-                  "descricao": descricao,
-                  "prioridade": prioridade,
-                  "data_inicio": data_inicio,
-                  "data_vencimento": data_vencimento}
-    
-    listaTarefas.append(novaTarefa)
-    
+        return 6  # Descrição muito grande
+    if prioridade not in [0, 1, 2, 3, 4]:
+        return 3  # Prioridade inválida
+    if not validaDatas(data_inicio, data_vencimento):
+        return 4  # Data inválida
+
+    nova = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip(),
+        "prioridade": prioridade,
+        "data_inicio": data_inicio.strip(),
+        "data_vencimento": data_vencimento.strip()
+    }
+    tarefas.append(nova)
     return 0
-    
+
+
+def editaTarefa(titulo_antigo: str, novas_infos: dict) -> int:
+    codigo, tarefa = consultaTarefa(titulo_antigo)
+    if codigo != 0:
+        return 1  # Tarefa não encontrada
+
+    if not novas_infos:
+        return 7  # Nenhuma informação a alterar
+
+    novo_titulo = novas_infos.get("titulo", tarefa["titulo"]).strip()
+    nova_descricao = novas_infos.get("descricao", tarefa["descricao"])
+    nova_prioridade = novas_infos.get("prioridade", tarefa["prioridade"])
+    nova_data_inicio = novas_infos.get("data_inicio", tarefa["data_inicio"])
+    nova_data_vencimento = novas_infos.get("data_vencimento", tarefa["data_vencimento"])
+
+    if novo_titulo == "":
+        return 2  # Novo título vazio
+    if len(novo_titulo) > 50:
+        return 5  # Novo título muito longo
+    if novo_titulo != titulo_antigo and consultaTarefa(novo_titulo)[0] == 0:
+        return 1  # Título duplicado
+    if len(nova_descricao) > 250:
+        return 6  # Descrição muito grande
+    if nova_prioridade not in [0, 1, 2, 3, 4]:
+        return 3  # Prioridade inválida
+    if not validaDatas(nova_data_inicio, nova_data_vencimento):
+        return 4  # Data inválida
+
+    tarefa["titulo"] = novo_titulo
+    tarefa["descricao"] = nova_descricao
+    tarefa["prioridade"] = nova_prioridade
+    tarefa["data_inicio"] = nova_data_inicio
+    tarefa["data_vencimento"] = nova_data_vencimento
+    return 0
+
+
+def apagaTarefa(titulo: str) -> int:
+    if titulo.strip() == "":
+        return 2  # Título vazio
+    if len(titulo) > 50:
+        return 3  # Título muito longo
+
+    for tarefa in tarefas:
+        if tarefa["titulo"] == titulo:
+            tarefas.remove(tarefa)
+            return 0  # Sucesso
+
+    return 1  # Tarefa não encontrada
+
+
+def validaDatas(inicio: str, fim: str) -> bool:
+    try:
+        d1 = datetime.strptime(inicio, "%Y/%m/%d")
+        d2 = datetime.strptime(fim, "%Y/%m/%d")
+        return d1 <= d2
+    except ValueError:
+        return False
