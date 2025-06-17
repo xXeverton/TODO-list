@@ -7,7 +7,8 @@
 #Modelo Coluna = {'titulo': '',
 #                 'tarefas': []}
 
-from tarefas import * 
+from .tarefas import *
+ 
 
 listaQuadros = []
 

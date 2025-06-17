@@ -1,5 +1,5 @@
 import unittest
-import quadros
+import quadros as quadros
 from tarefas import *
 
 nTeste = 0
