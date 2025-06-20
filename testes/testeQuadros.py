@@ -1,644 +1,666 @@
 import unittest
-import quadros as quadros
-from tarefas import *
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from entidades.quadros import *
+from entidades.tarefas import *
 
-nTeste = 0
-idAssertiva = 0
+class testeQuadros(unittest.TestCase):
 
-def testaQuadros():
+    def test_01_ConsultaQuadroOk(self):
+        ambienteDeTesteQuadro()
+        print(f"\nCaso Teste 01 - Consulta Quadro\t")
 
-    testaConsultaQuadro()
-    testaCriaQuadros()
-    testaApagaQuadro()
-    testaCriaColuna()
-    testaRemoveColuna()
-    testaConsultaColuna()
-    testaEditaColuna()
-    testaConsultaTodosQuadros()
-    testaAdicionarTarefaAoQuadro()
-    testaRemoveTarefaDoQuadro()
-    testaMoverTarefaEntreColunas()
+        quadroTeste1 = {'titulo': 'Quadro Teste 1',
+                'descricao': 'Descricao 1',
+                'colunas': [0, 1, 2]}
 
-    return
+        ret = consultaQuadro(quadroTeste1['titulo'])
+        self.assertEqual(ret, (0, quadroTeste1))
 
-def mensagemInicialTeste(nomeTeste):
-    global nTeste, idAssertiva
-    nTeste += 1
-    idAssertiva = 0
-    print(f"Caso Teste {nTeste} - {nomeTeste}")
-    return
+        apagaTodosOsQuadros()
 
-def mensagemResultadoTeste(ret, retornoEsperado):
-    if ret == retornoEsperado:
-        print("Sucesso")
-    else:
-        print("Falha")
-    print()
+    def test_02_ConsultaQuadroInexistente(self):
+        
+        apagaTodosOsQuadros()
 
-def checaAssertiva(ret, retornoEsperado):
-    global nTeste, idAssertiva
-    idAssertiva += 1
-    if ret != retornoEsperado:
-        print(f'Falha na assertiva {idAssertiva} do teste {nTeste}')
+        ret = consultaQuadro("Quadro Nao Existente")
+        self.assertEqual(ret, (1, None))
 
-def testaConsultaQuadro():
+        apagaTodosOsQuadros()
+
+        return
+
+    def test_03_CriaQuadroOk(self):
+        
+        apagaTodosOsQuadros()
+
+        print(f"\nCaso Teste 02 - Cria Quadros\t")
+
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Quadro Teste',
+                                   'descricao': '',
+                                   'colunas': []}))
+        
+        apagaTodosOsQuadros()
+
+        return
     
-    quadros.listaQuadros = []
+    def test_04_CriaQuadroRepetido(self):
 
-    mensagemInicialTeste('Consulta Quadro nao existente')
-    ret = quadros.consultaQuadro("Quadro Nao Existente")
-    mensagemResultadoTeste(ret, (1, None))
+        apagaTodosOsQuadros()
 
-    tarefaTeste = {'titulo': 'Tarefa Teste',
-            'descricao': 'Descricao Teste',
-            'prioridade': 0,
-            'dtInicio': '05/06/2025',
-            'dtVenc': '05/06/2025'}
-    colunaTeste = {'titulo': 'ColunaTeste',
-            'tarefas': [tarefaTeste]}
-    quadroTeste = {'titulo': 'Teste',
-            'descricao': 'Quadro Teste',
-            'colunas': [colunaTeste]}
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaQuadro('Quadro Teste')   
+        self.assertEqual(ret, (0, {'titulo': 'Quadro Teste',
+                                        'descricao': '',
+                                        'colunas': []}))
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 1)
 
-    quadros.listaQuadros = [quadroTeste]
-    mensagemInicialTeste('Consulta Quadro Ok')
-    ret = quadros.consultaQuadro(quadroTeste['titulo'])
-    mensagemResultadoTeste(ret, (0, quadroTeste))
+        apagaTodosOsQuadros()
 
-    quadros.listaQuadros = []
-
-    return
-
-def testaCriaQuadros():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Cria Quadro Ok')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Quadro Teste',
-                                     'descricao': '',
-                                     'colunas': []}))
+    def test_05_CriaQuadroVazio(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('')
+        self.assertEqual(ret, 2)
+
+        apagaTodosOsQuadros()
+
+        return
     
-    mensagemInicialTeste('Cria Quadro Repetido')
-    ret = quadros.consultaQuadro('Quadro Teste')   
-    checaAssertiva(ret, (0, {'titulo': 'Quadro Teste',
-                                     'descricao': '',
-                                     'colunas': []}))
-    ret = quadros.criaQuadro('Quadro Teste')
-    mensagemResultadoTeste(ret, 1)
+    def test_06_ApagaQuadroOk(self):
+        
+        ambienteDeTesteQuadro()
 
-    mensagemInicialTeste('Cria Quadro Vazio')
-    ret = quadros.criaQuadro('')
-    mensagemResultadoTeste(ret, 2)
+        print(f"\nCaso Teste 03 - Apaga Quadro\t")
 
-    quadros.listaQuadros = []
+        quadroTeste1 = {'titulo': 'Quadro Teste 1',
+                'descricao': 'Descricao 1',
+                'colunas': [0, 1, 2]}
+        
+        ret = consultaQuadro(quadroTeste1['titulo'])
+        self.assertEqual(ret, (0, quadroTeste1))
+        ret = apagaQuadro(quadroTeste1['titulo'])
+        self.assertEqual(ret, 0)
+        ret = consultaQuadro(quadroTeste1['titulo'])
+        self.assertEqual(ret, (1, None))
 
-    return
+        apagaTodosOsQuadros()
 
-def testaApagaQuadro():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Apaga Quadro Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (0, {'titulo': 'Quadro Teste',
-                                     'descricao': '',
-                                     'colunas': []}))
-    ret = quadros.apagaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    mensagemResultadoTeste(ret, (1, None))
+    def test_07_ApagaQuadroInexistente(self):
+        
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Apaga Quadro Inexistente')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.apagaQuadro('Quadro Teste')
-    mensagemResultadoTeste(ret, 1)
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = apagaQuadro('Quadro Teste')
+        self.assertEqual(ret, 1)
 
-    quadros.listaQuadros = []
+        apagaTodosOsQuadros()
 
-    return
-
-def testaCriaColuna():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Cria Coluna Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Quadro Teste',
+    def test_08_ConsultaColunaOk(self):
+        
+        print(f"\nCaso Teste 04 - Consulta Coluna\t")
+
+        ambienteDeTesteQuadro()
+
+        quadroTeste1 = {'titulo': 'Quadro Teste 1',
+                        'descricao': 'Descricao 1',
+                        'colunas': [0, 1, 2]}
+        ret = consultaColuna(quadroTeste1['titulo'], 'ColunaTeste1.1')
+        self.assertEqual(ret, (0, {'titulo': 'ColunaTeste1.1',
+                                   'tarefas': [1, 2, 3]}))
+        ret = apagaQuadro('Quadro Teste')
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_09_ConsultaColunaQuadroInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = consultaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, (1, None))
+        ret = apagaQuadro('Quadro Teste')
+
+        apagaTodosOsQuadros()
+
+        return
+
+    def test_10_ConsultaColunaInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, (2, None))
+
+        apagaTodosOsQuadros()
+
+        return
+
+    def test_11_CriaColunaOk(self):
+        
+        print(f"\nCaso Teste 05 - Cria Coluna\t")
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
+                                   'tarefas': []}))
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_12_CriaColunaQuadroInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 1)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_13_CriaColunaVazia(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', '')
+        self.assertEqual(ret, 2)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_14_CriaColunaRepetida(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 0)
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Quadro Teste',
+                                   'descricao': '',
+                                   'colunas': ret[1]['colunas']}))
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 3)
+
+        apagaTodosOsQuadros()
+
+        return
+
+    def test_15_RemoveColunaOk(self):
+        
+        print(f"\nCaso Teste 05 - Remove Coluna\t")
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, (0, {'titulo': 'To Do',
+                                            'tarefas': []}))
+        ret = apagaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 0)
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Quadro Teste',
+                                        'descricao': '',
+                                        'colunas': []}))
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_16_RemoveColunaQuadroInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = apagaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 1)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_17_RemoveColunaInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = apagaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 2)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_18_EditaColunaOk(self):
+
+        apagaTodosOsQuadros()
+
+        print(f"\nCaso Teste 07 - Edita Coluna\t")
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 0)
+        ret = editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, (2, None))
+        ret = consultaColuna('Quadro Teste', 'To Do Novo')
+        self.assertEqual(ret, (0, {'titulo': 'To Do Novo',
+                                        'tarefas': []}))
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_19_EditaColunaQuadroInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
+        self.assertEqual(ret, 1)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_20_EditaColunaAntigaInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, (2, None))
+        ret = editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
+        self.assertEqual(ret, 2)
+        ret = apagaQuadro('Quadro Teste')
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_21_EditaColunaNovaVazia(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 0)
+        ret = editaColuna('Quadro Teste', 'To Do', '')
+        self.assertEqual(ret, 3)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_22_EditaColunaNovaRepetida(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'To Do Novo')
+        self.assertEqual(ret, 0)
+        ret = editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
+        self.assertEqual(ret, 4)
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_23_ConsultaTodosQuadrosOk(self):
+
+        apagaTodosOsQuadros()
+
+        print(f"\nCaso Teste 08 - Consulta Todos os Quadros\t")
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaQuadro('Quadro Teste2')
+        self.assertEqual(ret, 0)
+        ret = consultaTodosQuadros()
+        self.assertEqual(ret, [{'titulo': 'Quadro Teste',
                                     'descricao': '',
-                                    'colunas': [{'titulo': 'To Do',
-                                                 'tarefas': []}]}))
-    quadros.apagaQuadro('Quadro Teste')
+                                    'colunas': []},
+                                    {'titulo': 'Quadro Teste2',
+                                    'descricao': '',
+                                    'colunas': []}])
+
+        apagaTodosOsQuadros()
+
+        return
     
-    mensagemInicialTeste('Cria Coluna Quadro Nao Encontrado')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, 1)
+    def test_24_AdicionaTarefaAQuadroOk(self):
 
-    mensagemInicialTeste('Cria Coluna Vazia')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', '')
-    mensagemResultadoTeste(ret, 2)
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Cria Coluna Repetida')
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (0, {'titulo': 'Quadro Teste',
-                             'descricao': '',
-                             'colunas': [{'titulo': 'To Do',
-                                          'tarefas': []}]}))
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, 3)
+        print(f"\nCaso Teste 09 - Adiciona Tarefa Ao Quadro\t")
 
-    quadros.listaQuadros = []
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
+                                        'tarefas': [{"titulo": 'Tarefa Teste',
+                                                    "descricao": '',
+                                                    "prioridade": 0,
+                                                    "data_inicio": '2005/09/10',
+                                                    "data_vencimento": '2005/09/10'}]}))
+        ret = apagaTarefa('Tarefa Teste')
 
-    return
+        apagaTodosOsQuadros()
 
-def testaRemoveColuna():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Remove Coluna Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (0, {'titulo': 'Quadro Teste',
-                             'descricao': '',
-                             'colunas': [{'titulo': 'To Do',
-                                          'tarefas': []}]}))
-    ret = quadros.apagaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaQuadro('Quadro Teste')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Quadro Teste',
-                                     'descricao': '',
-                                     'colunas': []}))
-    ret = quadros.apagaQuadro('Quadro Teste')
+    def test_25_AdicionaTarefaAQuadroInexistente(self):
 
-    mensagemInicialTeste('Remove Coluna Quadro Nao Encontrado')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.apagaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, 1)
-    ret = quadros.apagaQuadro('Quadro Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Remove Coluna Nao Encontrado')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.apagaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, 2)
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 1)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 1)
+        ret = apagaTarefa('Tarefa Teste')
 
-    quadros.listaQuadros = []
+        apagaTodosOsQuadros()
 
-    return
-
-def testaConsultaColuna():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Consulta Coluna Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'To Do',
-                                     'tarefas': []}))
-    ret = quadros.apagaQuadro('Quadro Teste')
+    def test_26_AdicionaTarefaAQuadroColunaInexistente(self):
 
-    mensagemInicialTeste('Consulta Coluna Quadro Nao Encontrado')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.consultaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, (1, None))
-    ret = quadros.apagaQuadro('Quadro Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Consulta Coluna Coluna Nao Encontrado')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'To Do')
-    mensagemResultadoTeste(ret, (2, None))
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 2)
+        ret = apagaTarefa('Tarefa Teste')
 
-    quadros.listaQuadros = []
+        apagaTodosOsQuadros()
 
-    return
-
-def testaEditaColuna():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Edita Coluna Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, (2, None))
-    ret = quadros.consultaColuna('Quadro Teste', 'To Do Novo')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'To Do Novo',
-                                     'tarefas': []}))
-    ret = quadros.apagaQuadro('Quadro Teste')
+    def test_27_AdicionaTarefaAQuadroTarefaInexistente(self):
 
-    mensagemInicialTeste('Edita Coluna Quadro Nao Encontrado')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
-    mensagemResultadoTeste(ret, 1)
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Edita Coluna Coluna Antiga Nao Encontrado')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, (2, None))
-    ret = quadros.editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
-    mensagemResultadoTeste(ret, 2)
-    ret = quadros.apagaQuadro('Quadro Teste')
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 3)
 
-    mensagemInicialTeste('Edita Coluna Vazia')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.editaColuna('Quadro Teste', 'To Do', '')
-    mensagemResultadoTeste(ret, 3)
-    ret = quadros.apagaQuadro('Quadro Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Edita Coluna Coluna Nova Ja Existe')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'To Do Novo')
-    checaAssertiva(ret, 0)
-    ret = quadros.editaColuna('Quadro Teste', 'To Do', 'To Do Novo')
-    mensagemResultadoTeste(ret, 4)
-    ret = quadros.apagaQuadro('Quadro Teste')
-
-    quadros.listaQuadros = []
-
-    return
-
-def testaConsultaTodosQuadros():
-
-    quadros.listaQuadros = []
+        return
     
-    mensagemInicialTeste('Consulta Todos os Quadros Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaQuadro('Quadro Teste2')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaTodosQuadros()
-    mensagemResultadoTeste(ret, [{'titulo': 'Quadro Teste',
-                                  'descricao': '',
-                                  'colunas': []},
-                                 {'titulo': 'Quadro Teste2',
-                                  'descricao': '',
-                                  'colunas': []}])
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = quadros.apagaQuadro('Quadro Teste2')
+    def test_28_RemoveTarefaDoQuadroOk(self):
 
-    quadros.listaQuadros = []
+        apagaTodosOsQuadros()
 
-    return
+        print(f"\nCaso Teste 10 - Remove Tarefa do Quadro\t")
 
-def testaAdicionarTarefaAoQuadro():
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
+                                'tarefas': [{"titulo": 'Tarefa Teste',
+                                            "descricao": '',
+                                            "prioridade": 0,
+                                            "data_inicio": '2005/09/10',
+                                            "data_vencimento": '2005/09/10'}]}))
+        ret = removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
+                                        'tarefas': []}))
+        ret = apagaTarefa('Tarefa Teste')
 
-    quadros.listaQuadros = []
+        apagaTodosOsQuadros()
+
+        return 
     
-    mensagemInicialTeste('Adiciona Tarefa a Quadro Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Coluna Teste')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Coluna Teste',
-                                     'tarefas': [{"titulo": 'Tarefa Teste',
-                                                  "descricao": '',
-                                                  "prioridade": 0,
-                                                  "data_inicio": '2005/09/10',
-                                                  "data_vencimento": '2005/09/10'}]}))
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+    def test_29_RemoveTarefaDoQuadroInexistente(self):
 
-    mensagemInicialTeste('Adiciona Tarefa a Quadro Nao Existente')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.criaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, 1)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 1)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Adiciona Tarefa a Quadro com Coluna Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 2)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 1)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 1)
+        ret = removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 1)
+        ret = apagaTarefa('Tarefa Teste')
 
-    mensagemInicialTeste('Adiciona Tarefa a Quadro com Tarefa Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 3)
-    ret = quadros.apagaQuadro('Quadro Teste')
+        apagaTodosOsQuadros()
 
-    quadros.listaQuadros = []
-
-    return
-
-def testaRemoveTarefaDoQuadro():
-
-    quadros.listaQuadros = []
+        return 
     
-    mensagemInicialTeste('Remove Tarefa do Quadro Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, (0, {'titulo': 'Coluna Teste',
-                             'tarefas': [{"titulo": 'Tarefa Teste',
-                                          "descricao": '',
-                                          "prioridade": 0,
-                                          "data_inicio": '2005/09/10',
-                                          "data_vencimento": '2005/09/10'}]}))
-    ret = quadros.removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Coluna Teste')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Coluna Teste',
-                                     'tarefas': []}))
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+    def test_30_RemoveTarefaDoQuadroColunaInexistente(self):
 
-    mensagemInicialTeste('Remove Tarefa de um Quadro Nao Existente')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.criaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, 1)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    checaAssertiva(ret, 1)
-    ret = quadros.removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 1)
-    ret = apagaTarefa('Tarefa Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Remove Tarefa de Quadro com Coluna Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    checaAssertiva(ret, 2)
-    ret = quadros.removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 2)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 2)
+        ret = removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 2)
+        ret = apagaTarefa('Tarefa Teste')
 
-    mensagemInicialTeste('Remove Tarefa do Quadro com Tarefa Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Coluna Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    checaAssertiva(ret, 3)
-    ret = quadros.removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 3)
-    ret = quadros.apagaQuadro('Quadro Teste')
+        apagaTodosOsQuadros()
 
-    quadros.listaQuadros = []
-
-    return
-
-    quadros.listaQuadros = []
+        return 
     
-    mensagemInicialTeste('Update Tarefa Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, (0, {'titulo': 'Backlog',
-                             'tarefas': [{"titulo": 'Tarefa Teste',
-                                          "descricao": '',
-                                          "prioridade": 0,
-                                          "data_inicio": '2005/09/10',
-                                          "data_vencimento": '2005/09/10'}]}))
-    ret = editaTarefa('Tarefa Teste', {"titulo": 'Tarefa Alterada',
-                                       "descricao": '',
-                                       "prioridade": 0,
-                                       "data_inicio": '2005/09/10',
-                                       "data_vencimento": '2005/09/10'})
-    checaAssertiva(ret, 0)
-    print(quadros.consultaColuna('Quadro Teste', 'Backlog'))
-    ret = quadros.updateTarefa('Quadro Teste', 'Backlog', 'Tarefa Teste', 'Tarefa Alterada')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Backlog')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Backlog',
-                             'tarefas': [{"titulo": 'Tarefa Alterada',
-                                       "descricao": '',
-                                       "prioridade": 0,
-                                       "data_inicio": '2005/09/10',
-                                       "data_vencimento": '2005/09/10'}]}))
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+    def test_31_RemoveTarefaDoQuadroTarefaInexistente(self):
 
-    '''mensagemInicialTeste('Mover Tarefa de um Quadro Nao Existente')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 1)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 1)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 1)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 1)
-    ret = apagaTarefa('Tarefa Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Mover Tarefa de Quadro com Coluna de Origem Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 2)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 2)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Coluna Teste')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 3)
+        ret = removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
+        self.assertEqual(ret, 3)
 
-    mensagemInicialTeste('Mover Tarefa de Quadro com Coluna de Destino Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 3)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Mover Tarefa de Quadro com Tarefa Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 3)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 4)
-    ret = quadros.apagaQuadro('Quadro Teste')'''
-
-    quadros.listaQuadros = []
-
-    return
-
-def testaMoverTarefaEntreColunas():
-
-    quadros.listaQuadros = []
+        return 
     
-    mensagemInicialTeste('Mover Tarefa Ok')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, (0, {'titulo': 'Backlog',
-                             'tarefas': [{"titulo": 'Tarefa Teste',
-                                          "descricao": '',
-                                          "prioridade": 0,
-                                          "data_inicio": '2005/09/10',
-                                          "data_vencimento": '2005/09/10'}]}))
-    ret = quadros.consultaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, (0, {'titulo': 'Complete',
-                             'tarefas': []}))
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.consultaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, (0, {'titulo': 'Backlog',
-                             'tarefas': []}))
-    ret = quadros.consultaColuna('Quadro Teste', 'Complete')
-    mensagemResultadoTeste(ret, (0, {'titulo': 'Complete',
-                                     'tarefas': [{"titulo": 'Tarefa Teste',
-                                                  "descricao": '',
-                                                  "prioridade": 0,
-                                                  "data_inicio": '2005/09/10',
-                                                  "data_vencimento": '2005/09/10'}]}))
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+    def test_32_MoverTarefaEntreColunasOk(self):
 
-    mensagemInicialTeste('Mover Tarefa de um Quadro Nao Existente')
-    ret = quadros.consultaQuadro('Quadro Teste')
-    checaAssertiva(ret, (1, None))
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 1)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 1)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 1)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 1)
-    ret = apagaTarefa('Tarefa Teste')
+        apagaTodosOsQuadros()
 
-    mensagemInicialTeste('Mover Tarefa de Quadro com Coluna de Origem Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 2)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 2)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        print(f"\nCaso Teste 10 - Mover Tarefa Entre Colunas\t")
 
-    mensagemInicialTeste('Mover Tarefa de Quadro com Coluna de Destino Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 0)
-    ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 3)
-    ret = quadros.apagaQuadro('Quadro Teste')
-    ret = apagaTarefa('Tarefa Teste')
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Backlog')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Complete')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'Backlog')
+        self.assertEqual(ret, (0, {'titulo': 'Backlog',
+                                'tarefas': [{"titulo": 'Tarefa Teste',
+                                            "descricao": '',
+                                            "prioridade": 0,
+                                            "data_inicio": '2005/09/10',
+                                            "data_vencimento": '2005/09/10'}]}))
+        ret = consultaColuna('Quadro Teste', 'Complete')
+        self.assertEqual(ret, (0, {'titulo': 'Complete',
+                                'tarefas': []}))
+        ret = moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
+        self.assertEqual(ret, 0)
+        ret = consultaColuna('Quadro Teste', 'Backlog')
+        self.assertEqual(ret, (0, {'titulo': 'Backlog',
+                                'tarefas': []}))
+        ret = consultaColuna('Quadro Teste', 'Complete')
+        self.assertEqual(ret, (0, {'titulo': 'Complete',
+                                        'tarefas': [{"titulo": 'Tarefa Teste',
+                                                    "descricao": '',
+                                                    "prioridade": 0,
+                                                    "data_inicio": '2005/09/10',
+                                                    "data_vencimento": '2005/09/10'}]}))
+        ret = apagaTarefa('Tarefa Teste')
 
-    mensagemInicialTeste('Mover Tarefa de Quadro com Tarefa Nao Existente')
-    ret = quadros.criaQuadro('Quadro Teste')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Backlog')
-    checaAssertiva(ret, 0)
-    ret = quadros.criaColuna('Quadro Teste', 'Complete')
-    checaAssertiva(ret, 0)
-    ret = quadros.adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
-    checaAssertiva(ret, 3)
-    ret = quadros.moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
-    mensagemResultadoTeste(ret, 4)
-    ret = quadros.apagaQuadro('Quadro Teste')
+        apagaTodosOsQuadros()
 
-    quadros.listaQuadros = []
+        return 
+    
+    def test_33_MoverTarefaEntreColunasQuadroInexistente(self):
 
-    return
+        apagaTodosOsQuadros()
 
-testaQuadros()  
+        ret = consultaQuadro('Quadro Teste')
+        self.assertEqual(ret, (1, None))
+        ret = criaColuna('Quadro Teste', 'Backlog')
+        self.assertEqual(ret, 1)
+        ret = criaColuna('Quadro Teste', 'Complete')
+        self.assertEqual(ret, 1)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
+        self.assertEqual(ret, 1)
+        ret = moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
+        self.assertEqual(ret, 1)
+        ret = apagaTarefa('Tarefa Teste')
+
+        apagaTodosOsQuadros()
+
+        return 
+    
+    def test_34_MoverTarefaEntreColunasOrigemInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Complete')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
+        self.assertEqual(ret, 2)
+        ret = moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
+        self.assertEqual(ret, 2)
+        ret = apagaTarefa('Tarefa Teste')
+
+        apagaTodosOsQuadros()
+
+        return
+
+    def test_35_MoverTarefaEntreColunasDestinoInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Backlog')
+        self.assertEqual(ret, 0)
+        ret = criaTarefa('Tarefa Teste', '', 0, '2005/09/10', '2005/09/10')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
+        self.assertEqual(ret, 0)
+        ret = moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
+        self.assertEqual(ret, 3)
+        ret = apagaTarefa('Tarefa Teste')
+
+        apagaTodosOsQuadros()
+
+        return  
+    
+    def test_36_MoverTarefaEntreColunasTarefaInexistente(self):
+
+        apagaTodosOsQuadros()
+
+        ret = criaQuadro('Quadro Teste')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Backlog')
+        self.assertEqual(ret, 0)
+        ret = criaColuna('Quadro Teste', 'Complete')
+        self.assertEqual(ret, 0)
+        ret = adicionaTarefaAoQuadro('Quadro Teste', 'Backlog', 'Tarefa Teste')
+        self.assertEqual(ret, 3)
+        ret = moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
+        self.assertEqual(ret, 4)
+
+        apagaTodosOsQuadros()
+
+        return  
+
+unittest.main()
