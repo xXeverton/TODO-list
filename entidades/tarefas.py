@@ -1,23 +1,65 @@
 # tarefas.py
 
-__all__ = ["criaTarefa", "consultaTarefa", "editaTarefa", "apagaTarefa", "limpaTarefas"]
+__all__ = [
+    "criaTarefa", "consultaTarefa", "consultaCodigo",
+    "editaTarefa", "apagaTarefa",
+    "consultaTodasTarefas",  
+    "limpaTarefas", "ambienteDeTesteTarefas",
+]
+
 
 from datetime import datetime
+from copy import copy
 
-tarefas = []  # Lista em memória de tarefas
+# -------------------------
+# Estruturas globais
+# -------------------------
 
-# Tem que colocar aquele formato de descricoes ainda para TODAS AS FUNCOES!
+tarefas = []          # lista de dicionários
+_next_id: int = 1                 # auto‑incremento interno
 
-def limpaTarefas():
-    tarefas.clear()  # Limpa a lista de tarefas para testes
 
+# -------------------------
+# Funções de acesso
+# -------------------------
+
+
+# Relacionada aos testes
+def limpaTarefas() -> None:
+    """Esvazia a lista em memória **e** reseta o contador de IDs.
+    Usado em setUp() dos testes."""
+    global _next_id
+    tarefas.clear()
+    _next_id = 1
+
+
+def ambienteDeTesteTarefas() -> None:
+    """Povoa a lista *tarefas* com 1 tarefa para o consultaTarefa() inicial."""
+    limpaTarefas()
+    exemplo1 = {
+        "id": _gera_id(),
+        "titulo": "Tarefa Teste 1",
+        "descricao": "Descricao 1",
+        "prioridade": 1,
+        "data_inicio": "2025/01/01",
+        "data_vencimento": "2025/01/05",
+    }
+    
+    tarefas.append(exemplo1)
 
 def consultaTarefa(titulo: str) -> tuple[int, dict]:
-    for tarefa in tarefas:
-        if tarefa["titulo"] == titulo:
-            return 0, tarefa
+    """0 + copia da tarefa se existe; 1, {} caso contrário."""
+    for t in tarefas:
+        if t["titulo"] == titulo:
+            return 0, t.copy()  
     return 1, {}
 
+def consultaCodigo(titulo: str) -> tuple[int, int]:
+    """0, id se achar; 1 se não achar."""
+    for t in tarefas:
+        if t["titulo"] == titulo:
+            return 0, t["id"]
+    return 1, -1
 
 def criaTarefa(titulo: str, descricao: str, prioridade: int, data_inicio: str, data_vencimento: str) -> int:
     if titulo.strip() == "":
@@ -34,11 +76,12 @@ def criaTarefa(titulo: str, descricao: str, prioridade: int, data_inicio: str, d
         return 4  # Data inválida
 
     nova = {
+        "id": _gera_id(),
         "titulo": titulo.strip(),
         "descricao": descricao.strip(),
         "prioridade": prioridade,
         "data_inicio": data_inicio.strip(),
-        "data_vencimento": data_vencimento.strip()
+        "data_vencimento": data_vencimento.strip(),
     }
     tarefas.append(nova)
     return 0
@@ -71,11 +114,17 @@ def editaTarefa(titulo_antigo: str, novas_infos: dict) -> int:
     if not validaDatas(nova_data_inicio, nova_data_vencimento):
         return 4  # Data inválida
 
-    tarefa["titulo"] = novo_titulo
-    tarefa["descricao"] = nova_descricao
-    tarefa["prioridade"] = nova_prioridade
-    tarefa["data_inicio"] = nova_data_inicio
-    tarefa["data_vencimento"] = nova_data_vencimento
+    tarefa_ref = None
+    for t in tarefas:
+        if t["id"] == tarefa["id"]:
+            tarefa_ref = t
+            break
+
+    tarefa_ref["titulo"] = novo_titulo
+    tarefa_ref["descricao"] = nova_descricao
+    tarefa_ref["prioridade"] = nova_prioridade
+    tarefa_ref["data_inicio"] = nova_data_inicio
+    tarefa_ref["data_vencimento"] = nova_data_vencimento
     return 0
 
 
@@ -85,13 +134,22 @@ def apagaTarefa(titulo: str) -> int:
     if len(titulo) > 50:
         return 3  # Título muito longo
 
-    for tarefa in tarefas:
-        if tarefa["titulo"] == titulo:
-            tarefas.remove(tarefa)
-            return 0  # Sucesso
+    for t in list(tarefas):  # iteração segura
+        if t["titulo"] == titulo:
+            tarefas.remove(t)
+            return 0
+    return 1
+# ----------  Para uso do persistência ----------
+def consultaTodasTarefas() -> list[dict]:  
+    """
+    Retorna cópias das tarefas em memória.
 
-    return 1  # Tarefa não encontrada
+    """
+    return [t.copy() for t in tarefas]
 
+# -------------------------
+# Auxiliar
+# -------------------------
 
 def validaDatas(inicio: str, fim: str) -> bool:
     try:
@@ -100,3 +158,9 @@ def validaDatas(inicio: str, fim: str) -> bool:
         return d1 <= d2
     except ValueError:
         return False
+    
+def _gera_id() -> int:
+    global _next_id
+    valor = _next_id
+    _next_id += 1
+    return valor
