@@ -196,31 +196,33 @@ class TestTarefa(unittest.TestCase):
                         max(t["id"] for t in esperado))
         
         limpaTarefas()
+    
+    def test_29_salva_tarefas_ok(self):
+        print("\nCaso Teste 29 - Salva tarefas OK")
+        # cria ambiente com alguns registros
+        ambienteDeTesteTarefas()
+        esperado = consultaTodasTarefas()
+
+        # 1. salva usando a função pública
+        self.assertEqual(salvaTarefas(), 0)
+
+        # 2. zera memória e garante que está vazia
+        limpaTarefas()
+        self.assertEqual(consultaTodasTarefas(), [])
+
+        # 3. recarrega do arquivo salvo
+        self.assertEqual(carregaTarefas(), 0)
+
+        obtido = consultaTodasTarefas()
+
+        # 4. conteúdo idêntico, porém lista nova
+        self.assertEqual(esperado, obtido)
+        self.assertIsNot(esperado, obtido)
+
+        limpaTarefas()          # higiene para evitar interferência em outros testes
 
     
-def test_29_salva_tarefas_ok(self):
-    print("\nCaso Teste 29 - Salva tarefas OK")
-    # cria ambiente com alguns registros
-    ambienteDeTesteTarefas()
-    esperado = consultaTodasTarefas()
 
-    # 1. salva usando a função pública
-    self.assertEqual(salvaTarefas(), 0)
-
-    # 2. zera memória e garante que está vazia
-    limpaTarefas()
-    self.assertEqual(consultaTodasTarefas(), [])
-
-    # 3. recarrega do arquivo salvo
-    self.assertEqual(carregaTarefas(), 0)
-
-    obtido = consultaTodasTarefas()
-
-    # 4. conteúdo idêntico, porém lista nova
-    self.assertEqual(esperado, obtido)
-    self.assertIsNot(esperado, obtido)
-
-    limpaTarefas()          # higiene para evitar interferência em outros testes
 
 
 if __name__ == "__main__":
