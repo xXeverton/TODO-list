@@ -375,11 +375,78 @@ class testeQuadros(unittest.TestCase):
 
         return
     
-    def test_24_AdicionaTarefaAQuadroOk(self):
+    def test_24_ConsultaTodosQuadrosVazio(self):
 
         apagaTodosOsQuadros()
 
-        print(f"\nCaso Teste 09 - Adiciona Tarefa Ao Quadro\t")
+        ret = consultaTodosQuadros()
+        self.assertEqual(ret, [])
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_25_ConsultaTodosColunaOk(self):
+
+        ambienteDeTesteQuadro()
+
+        print(f"\nCaso Teste 09 - Consulta Todas as Colunas\t")
+
+        colunaTeste11 = {'codigo': 0,
+                         'titulo': 'ColunaTeste1.1',
+                         'tarefas': [1, 2, 3]}
+        colunaTeste12 = {'codigo': 1,
+                         'titulo': 'ColunaTeste1.2',
+                         'tarefas': [3, 4, 5]}
+        colunaTeste13 = {'codigo': 2,
+                         'titulo': 'ColunaTeste1.3',
+                         'tarefas': [6, 7, 8]}
+    
+        colunaTeste21 = {'codigo': 3,
+                        'titulo': 'ColunaTeste2.1',
+                        'tarefas': [9, 10, 11]}
+        colunaTeste22 = {'codigo': 4,
+                        'titulo': 'ColunaTeste2.2',
+                        'tarefas': [12, 13, 14]}
+        colunaTeste23 = {'codigo': 5,
+                        'titulo': 'ColunaTeste2.3',
+                        'tarefas': [15, 16, 17]}
+        
+        colunaTeste31 = {'codigo': 6,
+                        'titulo': 'ColunaTeste3.1',
+                        'tarefas': [18, 19, 20]}
+        colunaTeste32 = {'codigo': 7,
+                        'titulo': 'ColunaTeste3.2',
+                        'tarefas': [21, 22, 23]}
+        colunaTeste33 = {'codigo': 8,
+                        'titulo': 'ColunaTeste3.3',
+                        'tarefas': [24, 25, 26]}
+
+        ret = consultaTodasColunas()
+        self.assertEqual(ret, [colunaTeste11, colunaTeste12, colunaTeste13, colunaTeste21, colunaTeste22, colunaTeste23, colunaTeste31, colunaTeste32, colunaTeste33])
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_26_ConsultaTodosColunaVazio(self):
+
+        apagaTodosOsQuadros()
+
+        print(f"\nCaso Teste 09 - Consulta Todas as Colunas\t")
+
+        ret = consultaTodasColunas()
+        self.assertEqual(ret, [])
+
+        apagaTodosOsQuadros()
+
+        return
+    
+    def test_27_AdicionaTarefaAQuadroOk(self):
+
+        apagaTodosOsQuadros()
+
+        print(f"\nCaso Teste 10 - Adiciona Tarefa Ao Quadro\t")
 
         ret = criaQuadro('Quadro Teste')
         self.assertEqual(ret, 0)
@@ -402,7 +469,7 @@ class testeQuadros(unittest.TestCase):
 
         return
     
-    def test_25_AdicionaTarefaAQuadroInexistente(self):
+    def test_28_AdicionaTarefaAQuadroInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -420,7 +487,7 @@ class testeQuadros(unittest.TestCase):
 
         return
     
-    def test_26_AdicionaTarefaAQuadroColunaInexistente(self):
+    def test_29_AdicionaTarefaAQuadroColunaInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -436,7 +503,7 @@ class testeQuadros(unittest.TestCase):
 
         return
     
-    def test_27_AdicionaTarefaAQuadroTarefaInexistente(self):
+    def test_30_AdicionaTarefaAQuadroTarefaInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -451,11 +518,11 @@ class testeQuadros(unittest.TestCase):
 
         return
     
-    def test_28_RemoveTarefaDoQuadroOk(self):
+    def test_31_RemoveTarefaDoQuadroOk(self):
 
         apagaTodosOsQuadros()
 
-        print(f"\nCaso Teste 10 - Remove Tarefa do Quadro\t")
+        print(f"\nCaso Teste 11 - Remove Tarefa do Quadro\t")
 
         ret = criaQuadro('Quadro Teste')
         self.assertEqual(ret, 0)
@@ -483,7 +550,7 @@ class testeQuadros(unittest.TestCase):
 
         return 
     
-    def test_29_RemoveTarefaDoQuadroInexistente(self):
+    def test_32_RemoveTarefaDoQuadroInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -503,7 +570,7 @@ class testeQuadros(unittest.TestCase):
 
         return 
     
-    def test_30_RemoveTarefaDoQuadroColunaInexistente(self):
+    def test_33_RemoveTarefaDoQuadroColunaInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -521,7 +588,7 @@ class testeQuadros(unittest.TestCase):
 
         return 
     
-    def test_31_RemoveTarefaDoQuadroTarefaInexistente(self):
+    def test_34_RemoveTarefaDoQuadroTarefaInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -538,11 +605,11 @@ class testeQuadros(unittest.TestCase):
 
         return 
     
-    def test_32_MoverTarefaEntreColunasOk(self):
+    def test_35_MoverTarefaEntreColunasOk(self):
 
         apagaTodosOsQuadros()
 
-        print(f"\nCaso Teste 10 - Mover Tarefa Entre Colunas\t")
+        print(f"\nCaso Teste 12 - Mover Tarefa Entre Colunas\t")
 
         ret = criaQuadro('Quadro Teste')
         self.assertEqual(ret, 0)
@@ -582,7 +649,7 @@ class testeQuadros(unittest.TestCase):
 
         return 
     
-    def test_33_MoverTarefaEntreColunasQuadroInexistente(self):
+    def test_36_MoverTarefaEntreColunasQuadroInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -604,7 +671,7 @@ class testeQuadros(unittest.TestCase):
 
         return 
     
-    def test_34_MoverTarefaEntreColunasOrigemInexistente(self):
+    def test_37_MoverTarefaEntreColunasOrigemInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -624,7 +691,7 @@ class testeQuadros(unittest.TestCase):
 
         return
 
-    def test_35_MoverTarefaEntreColunasDestinoInexistente(self):
+    def test_38_MoverTarefaEntreColunasDestinoInexistente(self):
 
         apagaTodosOsQuadros()
 
@@ -644,7 +711,7 @@ class testeQuadros(unittest.TestCase):
 
         return  
     
-    def test_36_MoverTarefaEntreColunasTarefaInexistente(self):
+    def test_39_MoverTarefaEntreColunasTarefaInexistente(self):
 
         apagaTodosOsQuadros()
 

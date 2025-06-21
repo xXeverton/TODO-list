@@ -14,8 +14,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from entidades.tarefas import *
  
-__all__ = ['ambienteDeTesteQuadro', 'apagaTodosOsQuadros', 'consultaQuadro', 'criaQuadro', 'apagaQuadro', 'consultaColuna', 'criaColuna', 'apagaColuna', 'editaColuna', 'consultaTodosQuadros', 'adicionaTarefaAoQuadro',
-           'adicionaTarefaAoQuadro', 'removeTarefaDoQuadro', 'moverTarefaEntreColunas']
+__all__ = ['ambienteDeTesteQuadro', 'apagaTodosOsQuadros', 'consultaQuadro', 'criaQuadro', 'apagaQuadro', 'consultaColuna', 'criaColuna', 'apagaColuna', 'editaColuna', 'consultaTodosQuadros',
+           'consultaTodasColunas', 'adicionaTarefaAoQuadro', 'adicionaTarefaAoQuadro', 'removeTarefaDoQuadro', 'moverTarefaEntreColunas']
 
 listaQuadros = []
 listaColunas = []
@@ -42,6 +42,18 @@ def copiaColuna(coluna):
     
     copia['titulo'] = coluna['titulo']
     copia['tarefas'] = coluna['tarefas'].copy()
+
+    return copia
+
+def copiaColunaComId(coluna):
+    
+    copia = {'codigo': 0,
+             'titulo': '',
+             'tarefas': []}
+    
+    copia['titulo'] = coluna['titulo']
+    copia['tarefas'] = coluna['tarefas'].copy()
+    copia['codigo'] = coluna['codigo']
 
     return copia
 
@@ -80,11 +92,26 @@ def geraCodigoUnico(lista):
     lista.append(codigo)
     return codigo
 
+def apagaColunaPorCodigo(codigo):
+    for coluna in listaColunas:
+        if coluna['codigo'] == codigo:
+            listaColunas.remove(coluna)
+            return
+
 #Funcoes de acesso
 
-#Nome: ambienteDeTesteQuadro
 def ambienteDeTesteQuadro():
-    #
+    '''
+    Nome: ambienteDeTesteQuadro\n
+    Objetivo: manualmente atualiza os dados para um estado propricio para testes\n
+    Acoplamento: A função não tem parametros nem retorno\n
+    AE: NA\n
+    AS: NA\n
+    Descrição: A função apaga os dados atuais e manualmente coloca na memoria 3 quadros testes, cada um com 3 colunas, que por sua vez possuem tres tarefas que nao existem.\n
+    Hipoteses: Essa função espera ser chamada somente pelo testeQuadros, com o unico intuito de testar o modulo quadros. Ela tambem considera que todos os dados presentes 
+    atualmente na memoria ja foram salvos ou podem ser apagados\n
+    Restrição: Essa função apaga permanentemente TODOS os dados atuais guardados na mémoria sobre quadros e colunas, sem nenhuma maneira de recuperá-los por esse módulo. 
+    '''
 
     global listaQuadros, listaColunas, listaCodigos
 
@@ -135,12 +162,51 @@ def ambienteDeTesteQuadro():
     listaCodigos = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 def apagaTodosOsQuadros():
+    '''
+    Nome: apagaTodosOsQuadros\n
+    Acoplamento: A função não tem parametros nem retorno\n
+    AE: NA\n
+    AS: NA\n
+    Descrição: Essa função apaga manualmente todas as informações sobre os dados dos quadros.
+    Hipoteses: Essa função espera ser chamada somente pelo testeQuadros ou na saida do aplicativo. E que todos os dados atuais podem ser apagados ou 
+    foram salvos pelo modulo persistencia\n
+    Restrição: Essa função apaga permanentemente TODOS os dados atuais guardados na mémoria sobre quadros e colunas, sem nenhuma maneira de recuperá-los por esse módulo. 
+    '''
+
+    global listaQuadros, listaColunas, listaCodigos
+
     listaQuadros.clear()
     listaCodigos.clear()
     listaColunas.clear()
 
 def consultaQuadro(nome: str) -> tuple[int, list]:
     
+    '''
+    Nome: consultaQuadro
+
+    Objetivo: Procura na memória o quadro com o nome especificado e retorna suas informações relevantes
+
+    Acoplamento:
+        - Nome, string: O nome do quadro a ser consultado
+        - Retorno: Uma tupla nos seguintes formatos:
+            * (0, Lista): Se o quadro foi encontrado e suas informações relevantes
+            * (1, None): Se o quadro não existe ou não foi encontrado
+
+    AE:
+        - Nome não deve ser uma string vazia
+        - Nome deve ser o nome de um quadro presente na memoria
+
+    AS: A função chamadora deve primeiro confirmar que a função achou o quadro antes de tentar acessar suas informações
+
+    Descrição: Essa função fornece as informações relevantes do quadro identificado pelo nome.
+
+    Hipoteses: 
+        - Essa função espera que o nome do quadro passado como parametro seja igual ao nome armazenado do quadro. 
+        - Não existem dois quadros com o mesmo nome
+
+    Restrição: Se um quadro não foi encontrado com o mesmo nome, a função considera que não existe o quadro pesquisado. 
+    '''
+
     if nome == '':
         return 1, None
     
@@ -151,6 +217,35 @@ def consultaQuadro(nome: str) -> tuple[int, list]:
     return 1, None
 
 def criaQuadro(nome: str, descricao: str = '') -> int:
+
+    '''
+    Nome: criaQuadro
+
+    Objetivo: Cria um quadro na memoria
+
+    Acoplamento:
+        - Nome, string: O nome do quadro que sera criado
+        - Descricao, string: A descricao do quadro que sera criado (opcional)
+        - Retorno:
+            * 0: Se o quadro foi criado com sucesso
+            * 1: Se já existir um quadro com o mesmo nome
+            * 2: Se o nome do quadro for uma string vazia
+
+    AE:
+        - Nome não deve ser uma string vazia
+        - Nome não deve ser o nome de um quadro presente na memoria
+
+    AS: A função chamadora deve tratar o erro antes de fazer qualquer operação com o quadro criado
+
+    Descrição: Essa função cria um quadro com o nome especificado, descrição, se essa for passada, e uma lista vazia que guarda os codigos das colunas do quadro. 
+
+    Hipoteses: 
+        - Um quadro não pode ser criado se já existir um quadro com o mesmo nome
+        - Um quadro não pode ser criado com uma coluna já existente
+        - Um quadro deve ter um nome válido, diferente da string vazia
+
+    Restrição: A função deve guardar o quadro e suas informações em uma lista encapsulada do módulo. 
+    '''
 
     if nome == '':
         return 2
@@ -169,14 +264,70 @@ def criaQuadro(nome: str, descricao: str = '') -> int:
 
 def apagaQuadro(nome: str) -> int:
     
-    for (pos, quadro) in enumerate(listaQuadros):
-        if quadro['titulo'] == nome:
-            listaQuadros.pop(pos)
-            return 0
+    '''
+    Nome: apagaQuadro
+
+    Objetivo: Apaga o quadro com o nome especificado
+
+    Acoplamento:
+        - Nome, string: O nome do quadro que sera excluido
+        - Retorno:
+            * 0: Se o quadro foi apagado com sucesso
+            * 1: Se não foi encontrado um quadro com o mesmo nome passado
+
+    AE:
+        - O parametro nome deve estar escrito igual o nome do quadro que deseja ser apagado
+
+    AS: 
+        - A função chamadora deve tratar o codigo de erro retornado
+
+    Descrição: Apaga o quadro com o nome especificado e todas suas informações da memoria, não podendo mais ser acessadas por qualquer outro metodo.
+
+    Hipoteses: 
+        - A informação do quadro apagado foi salvado em algum lugar externo anteriormente a chamada dessa função caso deseja se manter esses dados
+
+    Restrição: A função deve apagar as colunas do quadro. 
+    '''
+
+    quadro = buscaQuadro(nome)
+    if quadro == None:
+        return 1
     
-    return 1
+    for codigo in quadro['colunas']:
+        apagaColunaPorCodigo(codigo)
+    listaQuadros.remove(quadro)
+    
+    return 0
 
 def consultaColuna(nome_quadro: str, nome_coluna: str) -> tuple[int, list]:
+
+    '''
+    Nome: consultaColuna
+
+    Objetivo: Procura na mémoria o quadro e a coluna especificada e retorna a informações relevantes da coluna 
+
+    Acoplamento:
+        - nome_quadro, string: O nome do quadro a qual a coluna pertence
+        - nome_coluna, string: O nome da coluna da qual deseja saber suas informações
+        - Retorno: Uma tupla nos seguintes formatos:
+            * (0, InfoColuna): Se o quadro e a coluna foram encontrados e suas informações relevantes
+            * (1, None): Se o quadro não existe ou não foi encontrado
+            * (2, None): Se a coluna não existe ou não foi encontrado
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna pertence 
+        - O parametro nome_coluna deve estar escrito igual o nome da coluna guardado na memória da qual deseja saber suas informaçõe
+
+    AS: 
+        - A função chamadora deve tratar o codigo de erro retornado antes de tentar acessar as informações da coluna
+
+    Descrição: Consulta a coluna com o nome especificado no quadro tambem especificado. As informações retornadas são: o nome da coluna, e o codigo das tarefas daquela coluna
+
+    Hipoteses: 
+        - Caso a função não encontre a coluna especificada, deve se assumir que ela não existe
+
+    Restrição: A consulta da coluna só poderá acontecer se o quadro especificado existir. 
+    '''
 
     quadro = buscaQuadro(nome_quadro)
     if quadro == None:
@@ -205,7 +356,9 @@ def criaColuna(nome_quadro: str, nome_coluna: str) -> int:
     #     coluna = buscaColuna('codigo', codigoColuna)
     #     if coluna['titulo'] == nome_coluna:
     #         return 3
-                
+
+
+
     novaColuna = {'codigo': geraCodigoUnico(listaCodigos),
                   'titulo': nome_coluna,
                   'tarefas': []}
@@ -264,6 +417,15 @@ def consultaTodosQuadros() -> list:
         quadros.append(copiaQuadro(quadro))
     
     return quadros
+
+def consultaTodasColunas() -> list:
+
+    colunas = []
+
+    for coluna in listaColunas:
+        colunas.append(copiaColunaComId(coluna))
+
+    return colunas
 
 def adicionaTarefaAoQuadro(nome_quadro: str, nome_coluna: str, tarefa: str) -> int:
     
