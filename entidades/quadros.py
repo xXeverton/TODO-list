@@ -8,7 +8,6 @@
 #                 'titulo': '',
 #                 'tarefas': []}
 
-import random
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -86,15 +85,14 @@ def indexTarefa(coluna, tituloTarefa):
                 return pos
     return -1
 
-def geraCodigoUnico(lista):
+def geraCodigoUnico():
 
-    random.random
-    codigo = random.randint(0, 255)
-    while codigo in lista:
-        codigo = random.randint(0, 255)
-
-    lista.append(codigo)
-    return codigo
+    i = 0
+    while i < 0x8fffffff:
+        if i not in listaCodigos:
+            listaCodigos.append(i)
+            return i
+        i += 1
 
 def apagaColunaPorCodigo(codigo):
     for coluna in listaColunas:
@@ -419,9 +417,7 @@ def criaColuna(nome_quadro: str, nome_coluna: str) -> int:
     #     if coluna['titulo'] == nome_coluna:
     #         return 3
 
-
-
-    novaColuna = {'codigo': geraCodigoUnico(listaCodigos),
+    novaColuna = {'codigo': geraCodigoUnico(),
                   'titulo': nome_coluna,
                   'tarefas': []}
 
