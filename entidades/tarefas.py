@@ -1,12 +1,15 @@
 # tarefas.py
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from servicos.persistencia import *
+
 
 __all__ = [
     "criaTarefa", "consultaTarefa", "consultaId", "consultaTituloPorId",
     "editaTarefa", "apagaTarefa",
     "consultaTodasTarefas",  
-    "limpaTarefas", "ambienteDeTesteTarefas",
+    "limpaTarefas", "ambienteDeTesteTarefas", "carregaTarefas","salvaTarefas"
 ]
-
 
 from datetime import datetime
 from copy import copy
@@ -18,11 +21,9 @@ from copy import copy
 tarefas = []          # lista de dicionários
 _next_id: int = 1                 # auto‑incremento interno
 
-
 # -------------------------
 # Funções de acesso
 # -------------------------
-
 
 # Relacionada aos testes
 def limpaTarefas() -> None:
@@ -31,7 +32,7 @@ def limpaTarefas() -> None:
     global _next_id
     tarefas.clear()
     _next_id = 1
-
+    return 0;
 
 def ambienteDeTesteTarefas() -> None:
     """Povoa a lista *tarefas* com 1 tarefa para o consultaTarefa() inicial."""
@@ -46,6 +47,26 @@ def ambienteDeTesteTarefas() -> None:
     }
     
     tarefas.append(exemplo1)
+
+def carregaTarefas() -> int:
+    global tarefas, _next_id          # ← also bring the counter into scope
+
+    tarefas = carrega_estado("tarefas.json")
+
+    # descobre o maior id já presente e avança o contador
+    _next_id = max((t["id"] for t in tarefas), default=0) + 1
+
+    return 0
+
+def salvaTarefas():
+
+    global tarefas
+
+    salva_estado(tarefas,'tarefas.json')
+
+    return 0;
+
+
 
 def consultaTarefa(titulo: str) -> tuple[int, dict]:
     """0 + copia da tarefa se existe; 1, {} caso contrário."""
@@ -71,6 +92,7 @@ def consultaId(titulo: str) -> tuple[int, int]:
         if t["titulo"] == titulo:
             return 0, t["id"]
     return 1, -1
+
 
 def criaTarefa(titulo: str, descricao: str, prioridade: int, data_inicio: str, data_vencimento: str) -> int:
     if titulo.strip() == "":

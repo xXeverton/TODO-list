@@ -2,8 +2,8 @@
 import unittest
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from entidades.tarefas import *
+from servicos.persistencia import *
 
 class TestTarefa(unittest.TestCase):
 
@@ -171,6 +171,57 @@ class TestTarefa(unittest.TestCase):
         print("\nCaso Teste 27 - Apagar título >50")
         titulo_longo = "A" * 51
         self.assertEqual(apagaTarefa(titulo_longo), 3)
+    
+    def test_28_carrega_tarefas_ok(self):
+        print("\nCaso Teste 28 - Carrega tarefas OK")
+        ambienteDeTesteTarefas()
+        esperado = consultaTodasTarefas()
+
+        # escreve arquivo
+        self.assertTrue(salva_estado(esperado, 'tarefas.json'))
+
+        limpaTarefas()
+        self.assertEqual(consultaTodasTarefas(), [])   # garantimos vazio
+
+        # carrega
+        self.assertEqual(carregaTarefas(), 0)
+
+        obtido = consultaTodasTarefas()
+        self.assertEqual(esperado, obtido)             # conteúdo igual
+        self.assertIsNot(esperado, obtido)             # mas novo objeto
+
+        # contador de ids deve avançar
+        criaTarefa("T2","",0,"2025/01/02","2025/01/03")
+        self.assertGreater(consultaId("T2")[1],
+                        max(t["id"] for t in esperado))
+        
+        limpaTarefas()
+
+    
+def test_29_salva_tarefas_ok(self):
+    print("\nCaso Teste 29 - Salva tarefas OK")
+    # cria ambiente com alguns registros
+    ambienteDeTesteTarefas()
+    esperado = consultaTodasTarefas()
+
+    # 1. salva usando a função pública
+    self.assertEqual(salvaTarefas(), 0)
+
+    # 2. zera memória e garante que está vazia
+    limpaTarefas()
+    self.assertEqual(consultaTodasTarefas(), [])
+
+    # 3. recarrega do arquivo salvo
+    self.assertEqual(carregaTarefas(), 0)
+
+    obtido = consultaTodasTarefas()
+
+    # 4. conteúdo idêntico, porém lista nova
+    self.assertEqual(esperado, obtido)
+    self.assertIsNot(esperado, obtido)
+
+    limpaTarefas()          # higiene para evitar interferência em outros testes
+
 
 if __name__ == "__main__":
     unittest.main()
