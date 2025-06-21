@@ -4,6 +4,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from entidades.quadros import *
 from entidades.tarefas import *
+from servicos.persistencia import *
 
 class testeQuadros(unittest.TestCase):
 
@@ -538,7 +539,7 @@ class testeQuadros(unittest.TestCase):
         self.assertEqual(ret, 0)
         ret = consultaColuna('Quadro Teste', 'Coluna Teste')
         self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
-                                        'tarefas': []}))
+                                   'tarefas': []}))
         ret = apagaTarefa('Tarefa Teste')
 
         apagaTodosOsQuadros()
@@ -622,15 +623,15 @@ class testeQuadros(unittest.TestCase):
                                    'tarefas': [consultaId('Tarefa Teste')[1]]}))
         ret = consultaColuna('Quadro Teste', 'Complete')
         self.assertEqual(ret, (0, {'titulo': 'Complete',
-                                'tarefas': []}))
+                                   'tarefas': []}))
         ret = moverTarefaEntreColunas('Quadro Teste', 'Backlog', 'Complete', 'Tarefa Teste')
         self.assertEqual(ret, 0)
         ret = consultaColuna('Quadro Teste', 'Backlog')
         self.assertEqual(ret, (0, {'titulo': 'Backlog',
-                                'tarefas': []}))
+                                   'tarefas': []}))
         ret = consultaColuna('Quadro Teste', 'Complete')
         self.assertEqual(ret, (0, {'titulo': 'Complete',
-                                        'tarefas': [consultaId('Tarefa Teste')[1]]}))
+                                   'tarefas': [consultaId('Tarefa Teste')[1]]}))
         ret = apagaTarefa('Tarefa Teste')
 
         apagaTodosOsQuadros()
@@ -717,5 +718,45 @@ class testeQuadros(unittest.TestCase):
         apagaTodosOsQuadros()
 
         return  
+    
+    def test_40_CarregaQuadrosOk(self):
+
+        ambienteDeTesteQuadro()
+
+        print(f"\nCaso Teste 13 - Persistencia Quadros Ok\t")
+
+        listaAnterior = consultaTodosQuadros()
+
+        ret = salva_estado(listaAnterior, 'quadros.json')
+        self.assertEqual(ret, True)
+        ret = apagaTodosOsQuadros()
+        self.assertEqual(ret, 0)
+        ret = carregaQuadros()
+        self.assertEqual(ret, 0)
+        ret = consultaTodosQuadros()
+        self.assertEqual(listaAnterior, ret)
+
+        apagaTodosOsQuadros()
+
+        return 
+    
+    def test_41_SalvaEstado(self):
+
+        ambienteDeTesteQuadro()
+
+        listaAnterior = consultaTodosQuadros()
+
+        ret = salvaQuadros()
+        self.assertEqual(ret, 0)
+        apagaTodosOsQuadros()
+        self.assertEqual(ret, 0)
+        ret = carregaQuadros()
+        self.assertEqual(ret, 0)
+        ret = consultaTodosQuadros()
+        self.assertEqual(listaAnterior, ret)
+
+        apagaTodosOsQuadros()
+
+        return 
 
 unittest.main()

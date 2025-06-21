@@ -13,9 +13,10 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from entidades.tarefas import *
+from servicos.persistencia import *
  
 __all__ = ['ambienteDeTesteQuadro', 'apagaTodosOsQuadros', 'consultaQuadro', 'criaQuadro', 'apagaQuadro', 'consultaColuna', 'criaColuna', 'apagaColuna', 'editaColuna', 'consultaTodosQuadros',
-           'consultaTodasColunas', 'adicionaTarefaAoQuadro', 'adicionaTarefaAoQuadro', 'removeTarefaDoQuadro', 'moverTarefaEntreColunas']
+           'consultaTodasColunas', 'adicionaTarefaAoQuadro', 'adicionaTarefaAoQuadro', 'removeTarefaDoQuadro', 'moverTarefaEntreColunas', 'carregaQuadros', 'salvaQuadros']
 
 listaQuadros = []
 listaColunas = []
@@ -109,14 +110,20 @@ def apagaColunaPorCodigo(codigo):
 
 def ambienteDeTesteQuadro():
     '''
-    Nome: ambienteDeTesteQuadro\n
-    Objetivo: manualmente atualiza os dados para um estado propricio para testes\n
-    Acoplamento: A função não tem parametros nem retorno\n
-    AE: NA\n
-    AS: NA\n
+    Nome: ambienteDeTesteQuadro
+
+    Objetivo: manualmente atualiza os dados para um estado propricio para testes
+
+    Acoplamento: Retorno: 0
+
+    AE: NA
+
+    AS: A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
     Descrição: A função apaga os dados atuais e manualmente coloca na memoria 3 quadros testes, cada um com 3 colunas, que por sua vez possuem tres tarefas que nao existem.\n
     Hipoteses: Essa função espera ser chamada somente pelo testeQuadros, com o unico intuito de testar o modulo quadros. Ela tambem considera que todos os dados presentes 
-    atualmente na memoria ja foram salvos ou podem ser apagados\n
+    atualmente na memoria ja foram salvos ou podem ser apagados
+
     Restrição: Essa função apaga permanentemente TODOS os dados atuais guardados na mémoria sobre quadros e colunas, sem nenhuma maneira de recuperá-los por esse módulo. 
     '''
 
@@ -168,15 +175,24 @@ def ambienteDeTesteQuadro():
     listaColunas = [colunaTeste11, colunaTeste12, colunaTeste13, colunaTeste21, colunaTeste22, colunaTeste23, colunaTeste31, colunaTeste32, colunaTeste33]
     listaCodigos = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
+    return 0
+
 def apagaTodosOsQuadros():
     '''
-    Nome: apagaTodosOsQuadros\n
-    Acoplamento: A função não tem parametros nem retorno\n
-    AE: NA\n
-    AS: NA\n
+    Nome: apagaTodosOsQuadros
+
+    Acoplamento: 
+        - Retorno: 0
+
+    AE: NA
+
+    AS: A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
     Descrição: Essa função apaga manualmente todas as informações sobre os dados dos quadros.
+
     Hipoteses: Essa função espera ser chamada somente pelo testeQuadros ou na saida do aplicativo. E que todos os dados atuais podem ser apagados ou 
-    foram salvos pelo modulo persistencia\n
+    foram salvos pelo modulo persistencia
+
     Restrição: Essa função apaga permanentemente TODOS os dados atuais guardados na mémoria sobre quadros e colunas, sem nenhuma maneira de recuperá-los por esse módulo. 
     '''
 
@@ -185,6 +201,8 @@ def apagaTodosOsQuadros():
     listaQuadros.clear()
     listaCodigos.clear()
     listaColunas.clear()
+
+    return 0
 
 def consultaQuadro(nome: str) -> tuple[int, list]:
     
@@ -747,4 +765,71 @@ def moverTarefaEntreColunas(nome_quadro: str, origem: str, destino: str, titulo_
     tarefa = colunaOrigem['tarefas'].pop(indexT)
     colunaDestino['tarefas'].append(tarefa)
 
+    return 0
+
+def carregaQuadros():
+
+    '''
+    Nome: iniciaQuadros
+
+    Objetivo: Carrega o estado da memória e seta a lista quadros, colunas e codigos com os valores armazenados.
+
+    Acoplamento:
+        - Retorno:
+            * 0: Se o estado foi carregado corretamente
+
+    AE:
+        - NA
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
+    Descrição: Chama o módulo persistência e carrega o estado da memória com o valor de retorno e seta a lista quadros, colunas e codigos com os valores armazenados.
+
+    Hipoteses: 
+        - Essa função será chamada no inicio do programa para carregar o estado anterior dos quadros
+
+    Restrição: 
+    '''
+
+    global listaQuadros, listaColunas, listaCodigos
+
+    listaQuadros = carrega_estado('quadros.json')
+    listaColunas = carrega_estado('colunas.json')
+
+    for coluna in listaColunas:
+        listaCodigos.append(coluna['codigo'])
+    
+    return 0
+
+def salvaQuadros():
+
+    '''
+    Nome: salvaQuadros
+
+    Objetivo: Salva o estado da memória em um json.
+
+    Acoplamento:
+        - Retorno:
+            * 0: Se o estado foi salvo corretamente
+
+    AE:
+        - NA
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
+    Descrição: Chama o módulo persistência e salva o estado da memória com o valor das listas atuais em um json com o módulo persistência.
+
+    Hipoteses: 
+        - Essa função será chamada no final da execução do programa para salvar o estado atual dos quadros
+
+    Restrição: 
+    '''
+
+    global listaQuadros, listaColunas
+
+    salva_estado(listaQuadros, 'quadros.json')
+    salva_estado(listaColunas, 'colunas.json')
+    
     return 0
