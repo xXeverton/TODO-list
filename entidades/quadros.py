@@ -76,10 +76,13 @@ def buscaColunaNoQuadro(quadro, chave, identificador):
             return coluna
     return None
 
-def indexTarefa(coluna, nomeTarefa):
-    for (pos, tarefa) in enumerate(coluna['tarefas']):
-        if tarefa['titulo'] == nomeTarefa:
-            return pos
+def indexTarefa(coluna, tituloTarefa):
+    codigoTarefaDesejada = consultaTarefa(tituloTarefa)
+    if codigoTarefaDesejada[0] == 0:
+        codigoTarefaDesejada = codigoTarefaDesejada[1]['id']
+        for (pos, codigoTarefa) in enumerate(coluna['tarefas']):
+            if codigoTarefa == codigoTarefaDesejada:
+                return pos
     return -1
 
 def geraCodigoUnico(lista):
@@ -96,6 +99,10 @@ def apagaColunaPorCodigo(codigo):
     for coluna in listaColunas:
         if coluna['codigo'] == codigo:
             listaColunas.remove(coluna)
+            for codigoTarefa in coluna['tarefas']:
+                tarefa = consultaTituloPorId(codigoTarefa)
+                if tarefa[0] == 0:
+                    apagaTarefa(tarefa[1])
             return
 
 #Funcoes de acesso
@@ -285,6 +292,7 @@ def apagaQuadro(nome: str) -> int:
 
     Hipoteses: 
         - A informação do quadro apagado foi salvado em algum lugar externo anteriormente a chamada dessa função caso deseja se manter esses dados
+        - Não existe quadros com nomes repetidos
 
     Restrição: A função deve apagar as colunas do quadro. 
     '''
@@ -320,11 +328,14 @@ def consultaColuna(nome_quadro: str, nome_coluna: str) -> tuple[int, list]:
 
     AS: 
         - A função chamadora deve tratar o codigo de erro retornado antes de tentar acessar as informações da coluna
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
 
     Descrição: Consulta a coluna com o nome especificado no quadro tambem especificado. As informações retornadas são: o nome da coluna, e o codigo das tarefas daquela coluna
 
     Hipoteses: 
         - Caso a função não encontre a coluna especificada, deve se assumir que ela não existe
+        - 
 
     Restrição: A consulta da coluna só poderá acontecer se o quadro especificado existir. 
     '''
@@ -341,6 +352,39 @@ def consultaColuna(nome_quadro: str, nome_coluna: str) -> tuple[int, list]:
 
 def criaColuna(nome_quadro: str, nome_coluna: str) -> int:
     
+    '''
+    Nome: criaColuna
+
+    Objetivo: Cria na memoria e adiciona a um quadro uma coluna com o nome especificado 
+
+    Acoplamento:
+        - nome_quadro, string: O nome do quadro no qual a coluna será inserida
+        - nome_coluna, string: O nome da coluna que será criada
+        - Retorno:
+            * 0: Se a coluna foi criada com sucesso
+            * 1: Se o quadro não existe ou não foi encontrado
+            * 2: Se o nome da coluna foi uma string vazia
+            * 3: Se já existir uma coluna no mesmo quadro com o mesmo nome da coluna que será criada
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna irá ser inserida 
+        - O parametro nome_coluna não deve ser o mesmo que uma outra coluna no mesmo quadro especificado
+        - O parametro nome_coluna não deve ser uma string vazia
+
+    AS: 
+        - A função chamadora deve tratar o codigo de erro retornado antes de tentar fazer operações com a coluna
+
+    Descrição: Cria na memoria e adiciona a um quadro uma coluna com o nome especificado, um codigo gerado automaticamente e uma lista vazia para o codigo de suas tarefas,
+    se, e somente se, existir o quadro especificado e o nome da coluna for valido, isso é, não repetido por uma outra coluna nesse mesmo quadro e não vazio.
+
+    Hipoteses: 
+        - Caso a função não encontre o quadro especificado, ela deve assumir que ele não existe
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
+
+    Restrição: A cria coluna só poderá criar a coluna se o quadro especificado existir, se não existir uma coluna nesse quadro com o mesmo nome e o nome da coluna for valido. 
+    '''
+
     if nome_coluna == '':
         return 2
     
@@ -371,6 +415,37 @@ def criaColuna(nome_quadro: str, nome_coluna: str) -> int:
 
 def apagaColuna(nome_quadro: str, nome_coluna: str) -> int:
     
+    '''
+    Nome: apagaColuna
+
+    Objetivo: Procura na memoria e apaga, se for encontrado, as informações de uma coluna e a remove de em um quadro.
+
+    Acoplamento:
+        - nome_quadro, string: O nome do quadro do qual a coluna será removida
+        - nome_coluna, string: O nome da coluna que será apagada
+        - Retorno:
+            * 0: Se a coluna foi apagada com sucesso
+            * 1: Se o quadro não existe ou não foi encontrado
+            * 2: Se a coluna não existe ou não foi encontrado
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna pertence 
+        - O parametro nome_coluna deve ser o mesmo que uma coluna no quadro especificado
+
+    AS: 
+        - A função chamadora deve tratar o codigo de erro retornado.
+
+    Descrição: Remove da memoria e remove de um quadro uma coluna com o nome especificado. Todas as tarefas pertencentes aquela coluna são apagadas tambem.
+
+    Hipoteses: 
+        - Caso a função não encontre o quadro especificado, ela deve assumir que ele não existe
+        - Caso a função não encontre a coluna especificada, ela deve assumir que ela não existe
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
+
+    Restrição: A apaga coluna só poderá apagar uma coluna se o quadro especificado existir, se a coluna existir e pertencer a esse quadro. 
+    '''
+
     quadro = buscaQuadro(nome_quadro)
     if quadro == None:
         return 1
@@ -379,6 +454,11 @@ def apagaColuna(nome_quadro: str, nome_coluna: str) -> int:
     if coluna == None:
         return 2
 
+    for codigoTarefa in coluna['tarefas']:
+        tarefa = consultaTituloPorId(codigoTarefa)
+        if tarefa[0] == 0:
+            apagaTarefa(tarefa[1])
+    
     quadro['colunas'].remove(coluna['codigo'])
     listaCodigos.remove(coluna['codigo'])
     listaColunas.remove(coluna)
@@ -387,6 +467,42 @@ def apagaColuna(nome_quadro: str, nome_coluna: str) -> int:
 
 def editaColuna(nome_quadro: str, nome_coluna_antigo: str, nome_coluna_novo: str) -> int:
     
+    '''
+    Nome: editaColuna
+
+    Objetivo: Procura na memoria e modifica, se for encontrado, o nome de uma coluna de um quadro especificado.
+
+    Acoplamento:
+        - nome_quadro, string: O nome do quadro do qual a coluna pertence
+        - nome_coluna_antigo, string: O nome antigo da coluna que será editada, isso é o nome atual na memória
+        - nome_coluna_novo, string: O novo nome que será atribuido a coluna editada
+        - Retorno:
+            * 0: Se a coluna foi editada com sucesso
+            * 1: Se o quadro não existe ou não foi encontrado
+            * 2: Se a coluna antiga não existe ou não foi encontrado
+            * 3: Se o novo nome desejado da coluna é uma string vazia
+            * 4: Se existe uma coluna no mesmo quadro com o nome desejado da coluna
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna pertence 
+        - O parametro nome_coluna_antigo deve ser o mesmo que uma coluna no quadro especificado
+        - O parametro nome_coluna_novo não pode ser o mesmo que o nome de uma coluna existente neste quadro
+
+    AS: 
+        - A função chamadora deve tratar o codigo de erro retornado antes de operar sobre a nova coluna.
+
+    Descrição: Procura na memoria e modifica, se for encontrado, o nome de uma coluna de um quadro especificado sem alterar os dados das tarefas da coluna.
+
+    Hipoteses: 
+        - Caso a função não encontre o quadro especificado, ela deve assumir que ele não existe
+        - Caso a função não encontre a coluna especificada, ela deve assumir que ela não existe
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
+
+    Restrição: A edita coluna só poderá editar uma coluna se o quadro especificado existir, se a coluna existir e pertencer a esse quadro e se uma coluna
+    com o mesmo nome do nome desejado não existir. 
+    '''
+
     if nome_coluna_novo == '':
         return 3
 
@@ -411,6 +527,30 @@ def editaColuna(nome_quadro: str, nome_coluna_antigo: str, nome_coluna_novo: str
 
 def consultaTodosQuadros() -> list:
     
+    '''
+    Nome: consultaTodosQuadros
+
+    Objetivo: Retorna a lista com todas as informações presentes de todos os quadros.
+
+    Acoplamento:
+        - Retorno:
+            * []: Não existe nenhum quadro na memória
+            * [quadro1, quadro2, ..., quadroN]: As informações de todos os quadros na memoria sem nenhuma ordem especifica
+
+    AE:
+        - NA
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo.
+
+    Descrição: Percorre todos os quadros e retorna uma copia de todas informações de todos os quadros.
+
+    Hipoteses: 
+        - NA
+
+    Restrição: A consultaTodosQuadros() deve retornar todas as informações de todos os quadros presentes atualmente na memória
+    '''
+
     quadros = []
     
     for quadro in listaQuadros:
@@ -419,6 +559,30 @@ def consultaTodosQuadros() -> list:
     return quadros
 
 def consultaTodasColunas() -> list:
+
+    '''
+    Nome: consultaTodasColunas
+
+    Objetivo: Retorna a lista com todas as informações presentes de todos as colunas atualmente na memória.
+
+    Acoplamento:
+        - Retorno:
+            * []: Não existe nenhuma coluna na memória
+            * [coluna1, coluna2, ..., colunaN]: As informações de todos as colunas na memoria sem nenhuma ordem especifica
+
+    AE:
+        - NA
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo.
+
+    Descrição: Percorre todos as colunas e retorna uma copia de todas informações de todos as colunas. Mesmo aquelas que não pertencem a nenhum quadro.
+
+    Hipoteses: 
+        - NA
+
+    Restrição: A consultaTodasColunas() deve retornar todas as informações de todos as colunas presentes atualmente na memória
+    '''
 
     colunas = []
 
@@ -429,6 +593,38 @@ def consultaTodasColunas() -> list:
 
 def adicionaTarefaAoQuadro(nome_quadro: str, nome_coluna: str, tarefa: str) -> int:
     
+    '''
+    Nome: adicionaTarefaAoQuadro
+
+    Objetivo: Adiciona em uma coluna de um quadro a tarefa especificada.
+
+    Acoplamento:
+        - Retorno:
+            * 0: Se a tarefa foi adicionada com sucesso
+            * 1: Se o quadro não existe ou não foi encontrado
+            * 2: Se a coluna não existe ou não foi encontrada
+            * 3: Se a tarefa não existe ou não foi encontrada
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna irá ser inserida 
+        - O parametro nome_coluna não deve ser o mesmo que uma outra coluna no mesmo quadro especificado
+        - O parametro tarefa deve ser uma tarefa presente na memória
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
+    Descrição: Procura a coluna presente no quadro e adiciona o codigo da tarefa na lista tarefas da coluna.
+
+    Hipoteses: 
+        - Caso a função não encontre o quadro especificado, ela deve assumir que ele não existe
+        - Caso a função não encontre a coluna especificada, ela deve assumir que ela não existe
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
+        - Não existe tarefas com codigos repetidos
+
+    Restrição: A adicionaTarefaAoQuadro() só pode adicionar uma tarefa a uma coluna se: a tarefa, a coluna e o quadro existirem e forem encontrados
+    '''
+
     quadro = buscaQuadro(nome_quadro)
     if quadro == None:
         return 1
@@ -439,11 +635,43 @@ def adicionaTarefaAoQuadro(nome_quadro: str, nome_coluna: str, tarefa: str) -> i
     
     novaTarefa = consultaTarefa(tarefa)
     if novaTarefa[0] == 0:
-        coluna['tarefas'].append(novaTarefa[1])
+        coluna['tarefas'].append(novaTarefa[1]['id'])
         return 0
     return 3
 
 def removeTarefaDoQuadro(nome_quadro: str, nome_coluna: str, tarefa: str) -> int:
+
+    '''
+    Nome: removeTarefaDoQuadro
+
+    Objetivo: Remove uma tarefa de uma coluna de um quadro e apaga a tarefa da memoria.
+
+    Acoplamento:
+        - Retorno:
+            * 0: Se a tarefa foi adicionada com sucesso
+            * 1: Se o quadro não existe ou não foi encontrado
+            * 2: Se a coluna não existe ou não foi encontrada
+            * 3: Se a tarefa não existe ou não foi encontrada
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna irá ser inserida 
+        - O parametro nome_coluna não deve ser o mesmo que uma outra coluna no mesmo quadro especificado
+        - O parametro tarefa deve ser uma tarefa presente na memória e na coluna deste quadro
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
+    Descrição: Procura a coluna presente no quadro e remove o codigo da tarefa na lista tarefas da coluna e apaga a tarefa da memória.
+
+    Hipoteses: 
+        - Caso a função não encontre o quadro especificado, ela deve assumir que ele não existe
+        - Caso a função não encontre a coluna especificada, ela deve assumir que ela não existe
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
+        - Não existe tarefas com codigos repetidos
+
+    Restrição: A removeTarefaDoQuadro() só pode remover uma tarefa de uma coluna se: a tarefa, a coluna e o quadro existirem e forem encontrados
+    '''
 
     quadro = buscaQuadro(nome_quadro)
     if quadro == None:
@@ -453,13 +681,52 @@ def removeTarefaDoQuadro(nome_quadro: str, nome_coluna: str, tarefa: str) -> int
     if coluna == None:
         return 2
     
-    for (pos, tarefaAtual) in enumerate(coluna['tarefas']):
-        if tarefaAtual['titulo'] == tarefa:
-            coluna['tarefas'].pop(pos)
-            return 0       
+    for (pos, codigoTarefa) in enumerate(coluna['tarefas']):
+        nometarefa = consultaTituloPorId(codigoTarefa)
+        if nometarefa[0] == 0:
+            if nometarefa[1] == tarefa:
+                coluna['tarefas'].pop(pos)
+                apagaTarefa(tarefa)
+                return 0
+       
     return 3
 
 def moverTarefaEntreColunas(nome_quadro: str, origem: str, destino: str, titulo_tarefa: str) -> int:
+
+    '''
+    Nome: moverTarefaEntreColunas
+
+    Objetivo: Move uma tarefa de uma coluna de um quadro para uma outra coluna do mesmo quadro.
+
+    Acoplamento:
+        - Retorno:
+            * 0: Se a tarefa foi movida com sucesso
+            * 1: Se o quadro não existe ou não foi encontrado
+            * 2: Se a coluna de origem não existe ou não foi encontrada
+            * 3: Se a coluna de destino não existe ou não foi encontrada
+            * 4: Se a tarefa não existe ou não foi encontrada
+
+    AE:
+        - O parametro nome_quadro deve estar escrito igual o nome do quadro guardado na memória a qual a coluna irá ser inserida 
+        - O parametro origem deve ser o mesmo que de uma coluna presente no mesmo quadro especificado
+        - O parametro destino deve ser o mesmo que de uma coluna presente no mesmo quadro especificado
+        - O parametro tarefa deve ser uma tarefa presente na memória e na coluna origem deste quadro
+
+    AS: 
+        - A função chamadora deve tratar o retorno e agir de acordo antes de operar sobre as colunas e tarefas.
+
+    Descrição: Procura a coluna de origem presente no quadro e remove o codigo da tarefa na lista tarefas da coluna de origem e procura a coluna de destino e 
+    adiciona o codigo da tarefa na lista tarefas da coluna de origem.
+
+    Hipoteses: 
+        - Caso a função não encontre o quadro especificado, ela deve assumir que ele não existe
+        - Caso a função não encontre as colunas especificadas, ela deve assumir que elas não existem
+        - Não existe colunas com nomes repetidos
+        - Não existe quadros com nomes repetidos
+        - Não existe tarefas com codigos repetidos
+
+    Restrição: A moverTarefaEntreColunas() só pode mover uma tarefa de uma coluna se: a tarefa, a coluna de origem, a coluna de destino e o quadro existirem e forem encontrados
+    '''
 
     quadro = buscaQuadro(nome_quadro)
     if quadro == None:

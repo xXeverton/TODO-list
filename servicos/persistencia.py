@@ -1,3 +1,4 @@
+
 import json, os
 
 __all__ = ["salva_estado", "carrega_estado"]

@@ -213,6 +213,9 @@ class testeQuadros(unittest.TestCase):
         self.assertEqual(ret, (0, {'titulo': 'Quadro Teste',
                                    'descricao': '',
                                    'colunas': ret[1]['colunas']}))
+        ret = consultaColuna('Quadro Teste', 'To Do')
+        self.assertEqual(ret, (0, {'titulo': 'To Do',
+                                  'tarefas': []}))
         ret = criaColuna('Quadro Teste', 'To Do')
         self.assertEqual(ret, 3)
 
@@ -458,11 +461,7 @@ class testeQuadros(unittest.TestCase):
         self.assertEqual(ret, 0)
         ret = consultaColuna('Quadro Teste', 'Coluna Teste')
         self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
-                                        'tarefas': [{"titulo": 'Tarefa Teste',
-                                                    "descricao": '',
-                                                    "prioridade": 0,
-                                                    "data_inicio": '2005/09/10',
-                                                    "data_vencimento": '2005/09/10'}]}))
+                                   'tarefas': [consultaId('Tarefa Teste')[1]]}))
         ret = apagaTarefa('Tarefa Teste')
 
         apagaTodosOsQuadros()
@@ -534,11 +533,7 @@ class testeQuadros(unittest.TestCase):
         self.assertEqual(ret, 0)
         ret = consultaColuna('Quadro Teste', 'Coluna Teste')
         self.assertEqual(ret, (0, {'titulo': 'Coluna Teste',
-                                'tarefas': [{"titulo": 'Tarefa Teste',
-                                            "descricao": '',
-                                            "prioridade": 0,
-                                            "data_inicio": '2005/09/10',
-                                            "data_vencimento": '2005/09/10'}]}))
+                                'tarefas': [consultaId('Tarefa Teste')[1]]}))
         ret = removeTarefaDoQuadro('Quadro Teste', 'Coluna Teste', 'Tarefa Teste')
         self.assertEqual(ret, 0)
         ret = consultaColuna('Quadro Teste', 'Coluna Teste')
@@ -611,6 +606,7 @@ class testeQuadros(unittest.TestCase):
 
         print(f"\nCaso Teste 12 - Mover Tarefa Entre Colunas\t")
 
+        apagaTarefa('Tarefa Teste')
         ret = criaQuadro('Quadro Teste')
         self.assertEqual(ret, 0)
         ret = criaColuna('Quadro Teste', 'Backlog')
@@ -623,11 +619,7 @@ class testeQuadros(unittest.TestCase):
         self.assertEqual(ret, 0)
         ret = consultaColuna('Quadro Teste', 'Backlog')
         self.assertEqual(ret, (0, {'titulo': 'Backlog',
-                                'tarefas': [{"titulo": 'Tarefa Teste',
-                                            "descricao": '',
-                                            "prioridade": 0,
-                                            "data_inicio": '2005/09/10',
-                                            "data_vencimento": '2005/09/10'}]}))
+                                   'tarefas': [consultaId('Tarefa Teste')[1]]}))
         ret = consultaColuna('Quadro Teste', 'Complete')
         self.assertEqual(ret, (0, {'titulo': 'Complete',
                                 'tarefas': []}))
@@ -638,11 +630,7 @@ class testeQuadros(unittest.TestCase):
                                 'tarefas': []}))
         ret = consultaColuna('Quadro Teste', 'Complete')
         self.assertEqual(ret, (0, {'titulo': 'Complete',
-                                        'tarefas': [{"titulo": 'Tarefa Teste',
-                                                    "descricao": '',
-                                                    "prioridade": 0,
-                                                    "data_inicio": '2005/09/10',
-                                                    "data_vencimento": '2005/09/10'}]}))
+                                        'tarefas': [consultaId('Tarefa Teste')[1]]}))
         ret = apagaTarefa('Tarefa Teste')
 
         apagaTodosOsQuadros()
