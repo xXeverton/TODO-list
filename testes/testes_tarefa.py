@@ -33,18 +33,18 @@ class TestTarefa(unittest.TestCase):
         self.assertEqual(len(lista), 2)
         self.assertIsNot(lista, consultaTodasTarefas())         # deve ser cópia
 
-    # 3) consultaCodigo
+    # 3) consultaId
     def test_04_consulta_codigo_existente(self):
         print("\nCaso Teste 04 - Consulta código existente")
         ambienteDeTesteTarefas()
-        codigo, id_tarefa = consultaCodigo("Tarefa Teste 1")
+        codigo, id_tarefa = consultaId("Tarefa Teste 1")
         self.assertEqual(codigo, 0)
         self.assertEqual(id_tarefa, 1)
 
     def test_05_consulta_codigo_inexistente(self):
         print("\nCaso Teste 05 - Consulta código inexistente")
         ambienteDeTesteTarefas()
-        codigo, id_ = consultaCodigo("Fantasma")
+        codigo, id_ = consultaId("Fantasma")
         self.assertEqual(codigo, 1)
         self.assertEqual(id_, -1)
 
@@ -52,19 +52,19 @@ class TestTarefa(unittest.TestCase):
     def test_06_ambiente_reseta_id(self):
         print("\nCaso Teste 06 - Ambiente reseta ID")
         criaTarefa("A", "d", 0, "2025/01/01", "2025/01/02")
-        _, id1 = consultaCodigo("A")
+        _, id1 = consultaId("A")
         self.assertEqual(id1, 1)
         limpaTarefas()
         criaTarefa("B", "d", 0, "2025/01/01", "2025/01/02")
-        _, id2 = consultaCodigo("B")
+        _, id2 = consultaId("B")
         self.assertEqual(id2, 1)
 
     def test_07_ids_auto_incrementais(self):
         print("\nCaso Teste 07 - IDs auto-incrementais")
         criaTarefa("X1", "d", 0, "2025/01/01", "2025/01/02")
         criaTarefa("X2", "d", 0, "2025/01/01", "2025/01/02")
-        _, id1 = consultaCodigo("X1")
-        _, id2 = consultaCodigo("X2")
+        _, id1 = consultaId("X1")
+        _, id2 = consultaId("X2")
         self.assertEqual(id1 + 1, id2)
 
     # 5) prioridades
@@ -106,9 +106,9 @@ class TestTarefa(unittest.TestCase):
     def test_15_edicao_preserva_id(self):
         print("\nCaso Teste 15 - Edição preserva ID")
         criaTarefa("Keep", "d", 1, "2025/01/01", "2025/01/02")
-        _, old_id = consultaCodigo("Keep")
+        _, old_id = consultaId("Keep")
         editaTarefa("Keep", {"titulo": "Kept"})
-        _, new_id = consultaCodigo("Kept")
+        _, new_id = consultaId("Kept")
         self.assertEqual(old_id, new_id)
 
     # 9) criação — geral

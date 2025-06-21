@@ -1,7 +1,7 @@
 # tarefas.py
 
 __all__ = [
-    "criaTarefa", "consultaTarefa", "consultaCodigo",
+    "criaTarefa", "consultaTarefa", "consultaId", "consultaTituloPorId",
     "editaTarefa", "apagaTarefa",
     "consultaTodasTarefas",  
     "limpaTarefas", "ambienteDeTesteTarefas",
@@ -54,7 +54,18 @@ def consultaTarefa(titulo: str) -> tuple[int, dict]:
             return 0, t.copy()  
     return 1, {}
 
-def consultaCodigo(titulo: str) -> tuple[int, int]:
+
+def consultaTituloPorId(id_tarefa: int) -> tuple[int, str]:
+    """
+    0, titulo  → id existe
+    1, ""      → id não existe
+    """
+    for t in tarefas:
+        if t["id"] == id_tarefa:
+            return 0, t["titulo"]
+    return 1, ""
+
+def consultaId(titulo: str) -> tuple[int, int]:
     """0, id se achar; 1 se não achar."""
     for t in tarefas:
         if t["titulo"] == titulo:
