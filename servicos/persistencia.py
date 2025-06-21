@@ -1,10 +1,8 @@
 import json, os
 
-filename = "data.json"
-
 __all__ = ["salva_estado", "carrega_estado"]
 
-def salva_estado(data):
+def salva_estado(data, filename):
     if type(data) is not list:
         return False
     with open(filename,"w") as f:
@@ -12,7 +10,7 @@ def salva_estado(data):
 
     return True
 
-def carrega_estado():
+def carrega_estado(filename):
     if os.path.exists(filename):
         with open(filename, "r") as f:
             data = json.load(f)
