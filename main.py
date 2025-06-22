@@ -1,7 +1,7 @@
 # main.py – ponto de entrada bem simples
 
-from entidades.tarefas import carregaTarefas, salvaTarefas
-from entidades.quadros import carregaQuadros, salvaQuadros
+from entidades.tarefas import *
+from entidades.quadros import *
 
 # importa depois de carregar dados para que a UI leia o estado já populado
 aut_ui = None

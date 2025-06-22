@@ -6,18 +6,8 @@ from datetime import datetime
 import os, sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from entidades.tarefas import (
-    criaTarefa, consultaTarefa, consultaTituloPorId,
-    editaTarefa, apagaTarefa,
-    carregaTarefas, salvaTarefas,
-)
-from entidades.quadros import (
-    criaQuadro, apagaQuadro,
-    consultaQuadro, consultaTodosQuadros, consultaTodasColunas,
-    criaColuna, apagaColuna, editaColuna,
-    adicionaTarefaAoQuadro, moverTarefaEntreColunas,
-    carregaQuadros, salvaQuadros,
-)
+from entidades.tarefas import *
+from entidades.quadros import *
 
 # globals
 root: tk.Tk | None = None
