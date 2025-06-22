@@ -723,7 +723,7 @@ class testeQuadros(unittest.TestCase):
 
         ambienteDeTesteQuadro()
 
-        print(f"\nCaso Teste 13 - Persistencia Quadros Ok\t")
+        print(f"\nCaso Teste 13 - Persistencia Quadros\t")
 
         listaAnterior = consultaTodosQuadros()
 
