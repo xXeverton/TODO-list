@@ -9,6 +9,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from entidades.tarefas import *
 from entidades.quadros import *
 
+__all__ = ["inicializar_ui"]
+
 # globals
 root: tk.Tk | None = None
 quadro_atual: str | None = None
