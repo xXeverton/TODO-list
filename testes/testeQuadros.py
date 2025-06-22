@@ -756,6 +756,7 @@ class testeQuadros(unittest.TestCase):
         self.assertEqual(listaAnterior, ret)
 
         apagaTodosOsQuadros()
+        salvaQuadros()
 
         return 
 
