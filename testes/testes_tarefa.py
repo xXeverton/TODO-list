@@ -220,7 +220,7 @@ class TestTarefa(unittest.TestCase):
         self.assertIsNot(esperado, obtido)
 
         limpaTarefas()          # higiene para evitar interferência em outros testes
-
+        salvaTarefas()
     
 
 
