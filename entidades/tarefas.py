@@ -6,53 +6,54 @@ from servicos.persistencia import *
 __all__ = [
     "criaTarefa", "consultaTarefa", "consultaId", "consultaTituloPorId",
     "editaTarefa", "apagaTarefa",
-    "consultaTodasTarefas",
-    "limpaTarefas", "ambienteDeTesteTarefas",
-    "carregaTarefas", "salvaTarefas"
+    "consultaTodasTarefas",  
+    "limpaTarefas", "ambienteDeTesteTarefas", "carregaTarefas","salvaTarefas"
 ]
 
 from datetime import datetime
+from copy import copy
 
-# -------------------------------------------------------------------
-# ESTRUTURAS GLOBAIS
-# -------------------------------------------------------------------
-tarefas: list[dict] = []    # lista que guarda as tarefas
-_next_id: int = 1           # contador de auto-incremento para novos IDs
+# -------------------------
+# Estruturas globais
+# -------------------------
 
+tarefas = []          # lista de dicionários
+_next_id: int = 1     # auto-incremento interno
 
-# -------------------------------------------------------------------
-# FUNÇÕES DE ACESSO — CADA UMA COM ESPECIFICAÇÃO COMPLETA
-# -------------------------------------------------------------------
+# -------------------------
+# Funções de acesso
+# -------------------------
 
 def limpaTarefas() -> int:
     '''
     Nome: limpaTarefas
 
     Objetivo:
-        Remover todas as tarefas da memória e reiniciar o contador de IDs,
-        criando um “estado limpo” para uso em testes.
+        Esvaziar completamente a lista de tarefas em memória e reiniciar
+        o contador de IDs para o estado inicial, garantindo ambiente limpo
+        para testes.
 
     Acoplamento:
         - Retorno:
-            * 0 — sempre que a limpeza for concluída.
+            * 0: indica que a operação foi concluída com sucesso.
 
-    AE (Assertivas de Entrada):
-        • Nenhum parâmetro é exigido.
+    AE:
+        - Não há parâmetros de entrada.
 
-    AS (Assertivas de Saída):
-        • A lista global `tarefas` fica vazia.
-        • A variável global `_next_id` volta a ser 1.
+    AS:
+        - A lista global `tarefas` fica vazia.
+        - O contador global `_next_id` é resetado para 1.
 
     Descrição:
-        1. Executa `tarefas.clear()`.
-        2. Seta `_next_id = 1`.
-        3. Retorna 0 para indicar sucesso.
+        - Executa `tarefas.clear()` para remover todos os elementos.
+        - Atualiza `_next_id = 1`.
+        - Usado tipicamente em `setUp()` de testes automatizados.
 
     Hipóteses:
-        • Não existe outra estrutura paralela que precise ser sincronizada.
+        - A lista `tarefas` existe e está acessível globalmente.
 
     Restrição:
-        • Deve ser chamada apenas em ambiente controlado (testes ou reset).
+        - Deve ser chamado somente em contexto de teste; não persiste em disco.
     '''
     global _next_id
     tarefas.clear()
@@ -65,32 +66,32 @@ def ambienteDeTesteTarefas() -> None:
     Nome: ambienteDeTesteTarefas
 
     Objetivo:
-        Popular a memória com um conjunto mínimo (1 tarefa) para permitir
-        testes de consulta e visualização sem depender da interface.
+        Preparar um ambiente mínimo de teste com uma tarefa pré-definida,
+        facilitando a validação de operações de consulta.
 
     Acoplamento:
-        - Retorno: None (efeito colateral sobre a lista global).
+        - Retorno:
+            * None (efeito colateral em memória).
 
     AE:
-        • Nenhum parâmetro.
+        - Não há parâmetros de entrada.
 
     AS:
-        • Após a chamada, existe exatamente uma tarefa de ID 1 e título
-          "Tarefa Teste 1".
+        - Após a execução, existe exatamente uma tarefa na lista
+          com título "Tarefa Teste 1" e ID gerado automaticamente.
 
     Descrição:
-        1. Chama `limpaTarefas()` para resetar.
-        2. Cria um dicionário exemplo com campos válidos.
-        3. Adiciona o dicionário à lista `tarefas`.
+        - Chama `limpaTarefas()` para reiniciar estado.
+        - Cria um dicionário de exemplo e o adiciona a `tarefas`.
 
     Hipóteses:
-        • Função utilizada apenas no módulo de testes automatizados.
+        - Função usada apenas em casos de teste unitário.
 
     Restrição:
-        • Apaga permanentemente qualquer estado prévio das tarefas.
+        - Apaga permanentemente qualquer tarefa existente antes de popular.
     '''
     limpaTarefas()
-    exemplo = {
+    exemplo1 = {
         "id": _gera_id(),
         "titulo": "Tarefa Teste 1",
         "descricao": "Descricao 1",
@@ -98,7 +99,7 @@ def ambienteDeTesteTarefas() -> None:
         "data_inicio": "2025/01/01",
         "data_vencimento": "2025/01/05",
     }
-    tarefas.append(exemplo)
+    tarefas.append(exemplo1)
 
 
 def carregaTarefas() -> int:
@@ -106,30 +107,29 @@ def carregaTarefas() -> int:
     Nome: carregaTarefas
 
     Objetivo:
-        Restaurar da camada de persistência (arquivo *tarefas.json*) todo o
-        conteúdo de tarefas, ajustando o contador `_next_id`.
+        Carregar a lista de tarefas do arquivo 'tarefas.json' para a memória
+        e ajustar o contador de IDs para continuar a numeração corretamente.
 
     Acoplamento:
         - Retorno:
-            * 0 — arquivo lido (ou inexistente, mas operação concluída).
+            * 0: indica que a carga (ou ausência de arquivo) foi processada.
 
     AE:
-        • Arquivo *tarefas.json* pode existir ou não. (Função trata ambos.)
+        - Arquivo 'tarefas.json' pode existir ou não; trata ambos os casos.
 
     AS:
-        • Lista `tarefas` contém objetos carregados.
-        • `_next_id` = (maior id presente) + 1, garantindo IDs únicos.
+        - `tarefas` recebe a lista carregada.
+        - `_next_id` torna-se (maior ID presente + 1).
 
     Descrição:
-        1. Usa `carrega_estado("tarefas.json")` da camada de serviço.
-        2. Substitui a lista global.
-        3. Calcula o próximo ID disponível.
+        - Invoca `carrega_estado("tarefas.json")`.
+        - Calcula novo `_next_id` com base nos IDs existentes.
 
     Hipóteses:
-        • O JSON armazena exatamente a estrutura que a aplicação grava.
+        - O JSON no arquivo corresponde à estrutura de tarefa esperada.
 
     Restrição:
-        • Não executa qualquer validação de schema.
+        - Não realiza validações além de carregar e ajustar contador.
     '''
     global tarefas, _next_id
     tarefas = carrega_estado("tarefas.json")
@@ -142,31 +142,29 @@ def salvaTarefas() -> int:
     Nome: salvaTarefas
 
     Objetivo:
-        Grav ar o estado atual da lista `tarefas` em *tarefas.json* de forma
-        totalmente substitutiva (snapshot).
+        Persistir o estado atual da lista de tarefas em 'tarefas.json',
+        permitindo recuperação em execuções futuras.
 
     Acoplamento:
         - Retorno:
-            * 0 — gravação concluída.
+            * 0: indica que o arquivo foi gravado sem erros.
 
     AE:
-        • Lista `tarefas` em RAM deve estar coerente.
+        - A lista `tarefas` deve estar corretamente montada.
 
     AS:
-        • Conteúdo do arquivo *tarefas.json* reflete exatamente a memória
-          após a chamada.
+        - O arquivo JSON é sobrescrito com o conteúdo de `tarefas`.
 
     Descrição:
-        1. Chama `salva_estado(tarefas, "tarefas.json")`.
-        2. Retorna 0.
+        - Chama `salva_estado(tarefas, 'tarefas.json')`.
 
     Hipóteses:
-        • A camada de persistência cria o arquivo se ele não existir.
+        - `salva_estado` funciona conforme especificado no módulo de persistência.
 
     Restrição:
-        • Descartará o conteúdo anterior do arquivo sem merger.
+        - Não retorna erro detalhado, sempre devolve 0.
     '''
-    salva_estado(tarefas, "tarefas.json")
+    salva_estado(tarefas, 'tarefas.json')
     return 0
 
 
@@ -175,23 +173,29 @@ def consultaTarefa(titulo: str) -> tuple[int, dict]:
     Nome: consultaTarefa
 
     Objetivo:
-        Retornar uma **cópia** da tarefa com o título fornecido.
+        Recuperar uma cópia da tarefa cujo título corresponda ao parâmetro,
+        garantindo que alterações posteriores não afetem o original.
 
     Acoplamento:
-        - titulo, str
+        - titulo, string: título da tarefa a buscar.
         - Retorno:
-            * (0, tarefa_dict) — tarefa encontrada (cópia profunda).
-            * (1, {})          — título inexistente.
+            * (0, cópia_da_tarefa) se encontrado.
+            * (1, {})                 se não encontrado.
 
     AE:
-        • `titulo` não é None.
+        - `titulo` não deve ser None.
 
     AS:
-        • Lista original permanece inalterada.
+        - Retorna apenas cópia (`t.copy()`), não referência direta.
 
     Descrição:
-        - Percorre `tarefas`; compara `t["titulo"] == titulo`.
-        - Se achar, devolve `t.copy()`; senão devolve código 1.
+        - Percorre cada tarefa em `tarefas` comparando `t["titulo"]`.
+
+    Hipóteses:
+        - Não existem títulos duplicados.
+
+    Restrição:
+        - Complexidade O(n) em número de tarefas.
     '''
     for t in tarefas:
         if t["titulo"] == titulo:
@@ -204,22 +208,25 @@ def consultaTituloPorId(id_tarefa: int) -> tuple[int, str]:
     Nome: consultaTituloPorId
 
     Objetivo:
-        Obter o título associado a um ID numérico de tarefa.
+        Obter o título de uma tarefa a partir do seu ID numérico.
 
     Acoplamento:
-        - id_tarefa, int
+        - id_tarefa, int: identificador da tarefa.
         - Retorno:
-            * (0, título) — id existente.
-            * (1, "")     — id não localizado.
+            * (0, titulo) se existir tarefa com aquele ID.
+            * (1, "")     se não existir.
 
     AE:
-        • id_tarefa ≥ 1
+        - `id_tarefa` deve ser inteiro válido.
 
     AS:
-        • Estado da lista permanece intacto.
+        - Não altera estado de `tarefas`.
 
     Descrição:
-        - Loop na lista procurando campo "id".
+        - Varre `tarefas` em busca de correspondência em `t["id"]`.
+
+    Hipóteses:
+        - IDs são únicos e gerados apenas por `_gera_id()`.
     '''
     for t in tarefas:
         if t["id"] == id_tarefa:
@@ -232,19 +239,22 @@ def consultaId(titulo: str) -> tuple[int, int]:
     Nome: consultaId
 
     Objetivo:
-        Descobrir o ID de uma tarefa a partir do título.
+        Recuperar o ID de uma tarefa com base em seu título.
 
     Acoplamento:
-        - titulo, str
+        - titulo, string: nome da tarefa.
         - Retorno:
-            * (0, id)  — sucesso.
-            * (1, -1)  — título não existente.
+            * (0, id)   se encontrar.
+            * (1, -1)   se não encontrar.
 
     AE:
-        • String não vazia.
+        - `titulo` não deve ser string vazia.
 
     AS:
-        • Sem efeitos colaterais.
+        - Não modifica `tarefas`.
+
+    Descrição:
+        - Percorre `tarefas` e retorna `t["id"]` no match.
     '''
     for t in tarefas:
         if t["titulo"] == titulo:
@@ -258,39 +268,40 @@ def criaTarefa(titulo: str, descricao: str, prioridade: int,
     Nome: criaTarefa
 
     Objetivo:
-        Inserir nova tarefa na lista cumprindo todas as validações de negócio.
+        Adicionar uma nova tarefa na lista, validando título, descrição,
+        prioridade e período (data de início ≤ data de vencimento).
 
     Acoplamento:
-        - titulo, str  : nome da tarefa.
-        - descricao, str : até 250 caracteres.
-        - prioridade, int: 0 (urgente) … 4 (nenhuma).
-        - data_inicio, str  "YYYY/MM/DD".
-        - data_vencimento, str "YYYY/MM/DD".
-        - Retorno (códigos):
-            * 0 — sucesso
-            * 1 — título já existe
-            * 2 — título vazio
-            * 3 — prioridade fora do range
-            * 4 — datas inválidas
-            * 5 — título > 50 caracteres
-            * 6 — descrição > 250 caracteres
+        - titulo, string: não vazio, ≤50 caracteres, único.
+        - descricao, string: ≤250 caracteres.
+        - prioridade, int: valor entre 0 e 4.
+        - data_inicio, string "YYYY/MM/DD".
+        - data_vencimento, string "YYYY/MM/DD".
+        - Retorno:
+            * 0 – sucesso.
+            * 1 – título duplicado.
+            * 2 – título vazio.
+            * 3 – prioridade inválida.
+            * 4 – datas inválidas (formato ou lógica).
+            * 5 – título muito longo.
+            * 6 – descrição muito longa.
 
     AE:
-        • Datas devem seguir formato e `data_inicio ≤ data_vencimento`.
+        - Formato de data compatível com `validaDatas()`.
 
     AS:
-        • Em sucesso, a nova tarefa é anexada e possui id único.
+        - Em caso de sucesso, cria dict com `_gera_id()` e adiciona a `tarefas`.
 
     Descrição:
-        1. Valida título (não vazio, tamanho, duplicidade).
-        2. Valida descrição, prioridade, datas.
-        3. Gera novo id por `_gera_id()` e dá append.
+        - Valida cada parâmetro sequencialmente; no primeiro erro,
+          retorna o código correspondente.
+        - Se tudo OK, constrói a tarefa e `append()`.
 
     Hipóteses:
-        • Prioridade 0 é mais alta.
+        - A função `_gera_id()` gera IDs únicos e crescentes.
 
     Restrição:
-        • Não grava em disco (persistência é externa).
+        - Não persiste em disco; caller deve chamar `salvaTarefas()`.
     '''
     if titulo.strip() == "":
         return 2
@@ -322,39 +333,39 @@ def editaTarefa(titulo_antigo: str, novas_infos: dict) -> int:
     Nome: editaTarefa
 
     Objetivo:
-        Alterar campos selecionados de uma tarefa existente, mantendo o ID.
+        Modificar campos específicos de uma tarefa existente sem alterar seu ID,
+        com retornos específicos para cada tipo de validação.
 
     Acoplamento:
-        - titulo_antigo, str
-        - novas_infos, dict com quaisquer chaves válidas:
-            {"titulo", "descricao", "prioridade",
-             "data_inicio", "data_vencimento"}
+        - titulo_antigo, string: tarefa a ser editada.
+        - novas_infos, dict: possíveis chaves {"titulo","descricao",
+          "prioridade","data_inicio","data_vencimento"}.
         - Retorno:
-            * 0 – sucesso
-            * 1 – tarefa não encontrada OU novo título duplicado
-            * 2 – novo título vazio
-            * 3 – prioridade inválida
-            * 4 – datas inválidas
-            * 5 – novo título > 50
-            * 6 – nova descrição > 250
-            * 7 – dicionário vazio (nada a alterar)
+            * 0 – sucesso.
+            * 1 – tarefa não encontrada ou título duplicado.
+            * 2 – novo título vazio.
+            * 3 – prioridade inválida.
+            * 4 – datas inválidas.
+            * 5 – título muito longo.
+            * 6 – descrição muito longa.
+            * 7 – nenhuma alteração solicitada.
 
     AE:
-        • `novas_infos` não pode ser None.
+        - `novas_infos` não pode ser vazio se a tarefa existir.
 
     AS:
-        • Em sucesso, tarefa é atualizada in-place.
+        - Campos atualizados em memória; ID permanece inalterado.
 
     Descrição:
-        - Localiza tarefa existente.
-        - Mescla valores; valida cada regra como em `criaTarefa`.
-        - Atualiza campos.
+        - Chama `consultaTarefa()`.
+        - Verifica e aplica cada campo de `novas_infos`.
+        - Retorna imediatamente no primeiro erro encontrado.
 
     Hipóteses:
-        • Títulos continuam únicos após edição.
+        - Usuário sabe quais campos deseja alterar.
 
     Restrição:
-        • Persistência não é automática.
+        - Não salva automaticamente; caller deve chamar `salvaTarefas()`.
     '''
     codigo, tarefa = consultaTarefa(titulo_antigo)
     if codigo != 0:
@@ -363,10 +374,10 @@ def editaTarefa(titulo_antigo: str, novas_infos: dict) -> int:
         return 7
 
     novo_titulo = novas_infos.get("titulo", tarefa["titulo"]).strip()
-    nova_desc   = novas_infos.get("descricao", tarefa["descricao"])
-    nova_prio   = novas_infos.get("prioridade", tarefa["prioridade"])
-    nova_ini    = novas_infos.get("data_inicio", tarefa["data_inicio"])
-    nova_venc   = novas_infos.get("data_vencimento", tarefa["data_vencimento"])
+    nova_descricao = novas_infos.get("descricao", tarefa["descricao"])
+    nova_prioridade = novas_infos.get("prioridade", tarefa["prioridade"])
+    nova_data_inicio = novas_infos.get("data_inicio", tarefa["data_inicio"])
+    nova_data_vencimento = novas_infos.get("data_vencimento", tarefa["data_vencimento"])
 
     if novo_titulo == "":
         return 2
@@ -374,18 +385,24 @@ def editaTarefa(titulo_antigo: str, novas_infos: dict) -> int:
         return 5
     if novo_titulo != titulo_antigo and consultaTarefa(novo_titulo)[0] == 0:
         return 1
-    if len(nova_desc) > 250:
+    if len(nova_descricao) > 250:
         return 6
-    if nova_prio not in [0, 1, 2, 3, 4]:
+    if nova_prioridade not in [0, 1, 2, 3, 4]:
         return 3
-    if not validaDatas(nova_ini, nova_venc):
+    if not validaDatas(nova_data_inicio, nova_data_vencimento):
         return 4
 
-    tarefa["titulo"]          = novo_titulo
-    tarefa["descricao"]       = nova_desc
-    tarefa["prioridade"]      = nova_prio
-    tarefa["data_inicio"]     = nova_ini
-    tarefa["data_vencimento"] = nova_venc
+    tarefa_ref = None
+    for t in tarefas:
+        if t["id"] == tarefa["id"]:
+            tarefa_ref = t
+            break
+
+    tarefa_ref["titulo"] = novo_titulo
+    tarefa_ref["descricao"] = nova_descricao
+    tarefa_ref["prioridade"] = nova_prioridade
+    tarefa_ref["data_inicio"] = nova_data_inicio
+    tarefa_ref["data_vencimento"] = nova_data_vencimento
     return 0
 
 
@@ -394,36 +411,38 @@ def apagaTarefa(titulo: str) -> int:
     Nome: apagaTarefa
 
     Objetivo:
-        Excluir definitivamente a tarefa cujo título é informado.
+        Excluir permanentemente uma tarefa identificada por título,
+        validando parâmetros de entrada e retornando códigos de erro.
 
     Acoplamento:
-        - titulo, str
+        - titulo, string: tarefa a ser removida.
         - Retorno:
-            * 0 – removida
-            * 1 – título não encontrado
-            * 2 – título vazio
-            * 3 – título > 50 caracteres
+            * 0 – sucesso.
+            * 1 – tarefa não encontrada.
+            * 2 – título vazio.
+            * 3 – título muito longo (>50).
 
     AE:
-        • String título não é None.
+        - `titulo.strip()` não pode ser vazio.
 
     AS:
-        • Lista interna perde o elemento correspondente.
+        - Remove o elemento de `tarefas` se encontrado.
 
     Descrição:
-        - Valida tamanho/não-vazio.
-        - Percorre lista (cópia) e remove a primeira ocorrência.
+        - Valida string.
+        - Itera sobre cópia de `tarefas` para remoção segura.
 
     Hipóteses:
-        • Títulos são únicos.
+        - Títulos únicos garantem remoção de item correto.
 
     Restrição:
-        • Persistência fica a cargo do chamador.
+        - Caller deve invocar `salvaTarefas()` para persistir.
     '''
     if titulo.strip() == "":
         return 2
     if len(titulo) > 50:
         return 3
+
     for t in list(tarefas):
         if t["titulo"] == titulo:
             tarefas.remove(t)
@@ -436,37 +455,44 @@ def consultaTodasTarefas() -> list[dict]:
     Nome: consultaTodasTarefas
 
     Objetivo:
-        Retornar uma **lista independente** contendo cópias de todas
-        as tarefas atualmente em memória.
+        Fornecer ao chamador uma lista de cópias independentes de todas
+        as tarefas presentes em memória, preservando encapsulamento.
 
     Acoplamento:
-        - Retorno: list[dict] — cada item é `t.copy()`.
+        - Retorno:
+            * lista de dicionários (cópias).
 
-    AE: Nenhuma.
+    AE:
+        - Nenhum.
 
     AS:
-        • Alterar o retorno não afeta a estrutura interna.
+        - Alterações na lista retornada não afetam `tarefas`.
 
     Descrição:
-        - List-comprehension `[t.copy() for t in tarefas]`.
+        - Retorna `[t.copy() for t in tarefas]`.
+
+    Hipóteses:
+        - Dicionário de tarefa contém apenas tipos primitivos.
+
+    Restrição:
+        - Complexidade O(n).
     '''
     return [t.copy() for t in tarefas]
 
+# -------------------------
+# Auxiliar
+# -------------------------
 
-# -------------------------------------------------------------------
-# AUXILIARES 
-# -------------------------------------------------------------------
 def validaDatas(inicio: str, fim: str) -> bool:
-    '''Valida formato YYYY/MM/DD e garante início ≤ fim.'''
     try:
         d1 = datetime.strptime(inicio, "%Y/%m/%d")
-        d2 = datetime.strptime(fim, "%Y/%m/%d")
+        d2 = datetime.strptime(fim,    "%Y/%m/%d")
         return d1 <= d2
     except ValueError:
         return False
-
+    
 def _gera_id() -> int:
     global _next_id
-    val = _next_id
+    valor = _next_id
     _next_id += 1
-    return val
+    return valor
