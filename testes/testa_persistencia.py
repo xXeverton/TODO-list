@@ -5,8 +5,8 @@ import unittest
 
 
 
-if os.path.exists("data.json"):
-    os.remove("data.json")
+if os.path.exists("./data.json"):
+    os.remove("./data.json")
 tarefa = [{
             "titulo": "Editada",
             "descricao": "Nova",
@@ -22,11 +22,11 @@ tarefa = [{
         }]
 class TestPersist(unittest.TestCase):
     def test_01_carrega_vazio(self):
-        self.assertEqual(carrega_estado("test.json"), [])
+        self.assertEqual(carrega_estado("data.json"), [])
 
     def test_02_salva_estado(self):
-        self.assertEqual(salva_estado(tarefa,"test.json"), True);
+        self.assertEqual(salva_estado(tarefa,"data.json"), True);
     def test_03_carrega_cheio(self):
-        self.assertEqual(carrega_estado("test.json"), tarefa);
+        self.assertEqual(carrega_estado("data.json"), tarefa);
 
 unittest.main()
