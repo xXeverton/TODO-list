@@ -1,6 +1,9 @@
-from persistencia import *
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from servicos.persistencia import *
 import unittest
-import os
+
+
 
 if os.path.exists("data.json"):
     os.remove("data.json")
