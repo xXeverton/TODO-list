@@ -502,8 +502,20 @@ def _nova_tarefa(coluna:str):
     hoje=datetime.today().strftime(DATE_FMT)
     ini=_askstring("Data Início",DATE_FMT, initialvalue=hoje) or hoje
     venc=_askstring("Data Vencimento",DATE_FMT, initialvalue=hoje) or hoje
-    if criaTarefa(titulo,descricao,pri,ini,venc)!=0:
-        _showerror("Erro","Falha ao criar tarefa — verifique os dados.")
+    err = criaTarefa(titulo, descricao, pri, ini, venc)
+    if err != 0:
+        if err == 2:
+            _showerror("Erro", "Título não pode ser vazio.")
+        elif err == 5:
+            _showerror("Erro", "Título não pode ter mais de 50 caracteres.")
+        elif err == 1:
+            _showerror("Erro", "Título já existe.")
+        elif err == 3:
+            _showerror("Erro", "Prioridade deve ser entre 0 e 4.")
+        elif err == 4:
+            _showerror("Erro", "Datas inválidas ou formato incorreto.")
+        else:
+            _showerror("Erro", "Falha ao criar tarefa — verifique os dados.")
         return
     adicionaTarefaAoQuadro(quadro_atual,coluna,titulo)
     _mostrar_quadro(quadro_atual)

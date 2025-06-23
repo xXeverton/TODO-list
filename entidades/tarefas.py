@@ -60,7 +60,6 @@ def limpaTarefas() -> int:
     _next_id = 1
     return 0
 
-
 def ambienteDeTesteTarefas() -> None:
     '''
     Nome: ambienteDeTesteTarefas
@@ -195,7 +194,7 @@ def consultaTarefa(titulo: str) -> tuple[int, dict]:
         - Não existem títulos duplicados.
 
     Restrição:
-        - Complexidade O(n) em número de tarefas.
+        - A consulta da tarefa só poderá acontecer se o quadro especificado existir
     '''
     for t in tarefas:
         if t["titulo"] == titulo:
@@ -249,7 +248,7 @@ def consultaId(titulo: str) -> tuple[int, int]:
 
     AE:
         - `titulo` não deve ser string vazia.
-
+        
     AS:
         - Não modifica `tarefas`.
 
@@ -287,6 +286,13 @@ def criaTarefa(titulo: str, descricao: str, prioridade: int,
             * 6 – descrição muito longa.
 
     AE:
+        - O titulo não pode ser vazio.
+        - O título deve ser único.
+        - Prioridade deve ser um inteiro entre 0 e 4.
+        - Descrição deve ser uma string com no máximo 250 caracteres.
+        - Data de início e vencimento devem ser strings no formato "YYYY/MM/DD".
+        - Data de início deve ser anterior ou igual à data de vencimento.
+        - Data de início e vencimento devem ser válidas (mês, dia, ano).
         - Formato de data compatível com `validaDatas()`.
 
     AS:
@@ -352,6 +358,12 @@ def editaTarefa(titulo_antigo: str, novas_infos: dict) -> int:
 
     AE:
         - `novas_infos` não pode ser vazio se a tarefa existir.
+        - novo título não pode ser vazio.
+        - prioridade deve ser um inteiro entre 0 e 4.
+        - descrição deve ser uma string com no máximo 250 caracteres.
+        - data de início e vencimento devem ser strings no formato "YYYY/MM/DD".
+        - data de início deve ser anterior ou igual à data de vencimento.
+        - Formato de data compatível com `validaDatas()`.
 
     AS:
         - Campos atualizados em memória; ID permanece inalterado.
@@ -424,6 +436,8 @@ def apagaTarefa(titulo: str) -> int:
 
     AE:
         - `titulo.strip()` não pode ser vazio.
+        - String titulo nao deve ser vazio.
+        - String titulo menor ou igual a 50 caracteres.
 
     AS:
         - Remove o elemento de `tarefas` se encontrado.
@@ -469,13 +483,14 @@ def consultaTodasTarefas() -> list[dict]:
         - Alterações na lista retornada não afetam `tarefas`.
 
     Descrição:
-        - Retorna `[t.copy() for t in tarefas]`.
+        - Retorna uma lista com copias de cada uma das tarefas.
 
     Hipóteses:
         - Dicionário de tarefa contém apenas tipos primitivos.
 
     Restrição:
-        - Complexidade O(n).
+        A consultaTodasTarefas() deve retornar todas as informações de todas as tarefas atualmente presentes atualmente na memória
+        - .
     '''
     return [t.copy() for t in tarefas]
 
