@@ -56,6 +56,22 @@ def _showinfo(title: str, msg: str) -> None:
 
 # —— Bootstrap ——
 def inicializar_ui() -> None:
+    """
+    Nome: inicializar_ui
+
+    Objetivo: Inicia a interface gráfica do sistema Kanban, carregando dados e configurando os elementos visuais.
+
+    Acoplamento: Retorno: None
+
+    AE: carregaTarefas, carregaQuadros, _menu_quadros, _area_quadro, _barra_inferior, _atualiza_lista_quadros
+
+    AS: Deve ser chamada apenas uma vez no início da aplicação.
+
+    Descrição: Cria a janela principal, define seu layout e inicializa a interface com dados dos quadros e tarefas previamente salvos.
+
+    Restrição: Não deve ser chamada em ambientes sem interface gráfica (headless).
+
+    """
     carregaTarefas()
     carregaQuadros()
     global root
@@ -73,6 +89,22 @@ def inicializar_ui() -> None:
 
 # —— Layout —— 
 def _menu_quadros():
+    """
+    Nome: _menu_quadros
+
+    Objetivo: Cria o menu lateral com a lista de quadros e botões para criar ou excluir quadros.
+
+    Acoplamento: Retorno: None
+
+    AE: root, lista_quadros_lb, _novo_quadro, _excluir_quadro
+
+    AS: Espera que a variável global `root` esteja inicializada.
+
+    Descrição: Monta o painel lateral esquerdo que lista todos os quadros existentes e fornece botões para criação e exclusão de quadros.
+
+    Restrição: A função depende da existência da janela principal do tkinter.
+
+    """
     global lista_quadros_lb
     painel = ttk.Frame(root, padding=10, width=220)
     painel.pack(side="left", fill="y")
@@ -84,6 +116,22 @@ def _menu_quadros():
     ttk.Button(painel, text="✖ Excluir Quadro", command=_excluir_quadro).pack()
 
 def _area_quadro():
+    """
+    Nome: _area_quadro
+
+    Objetivo: Cria a área central da interface onde são exibidas as colunas e tarefas do quadro selecionado.
+
+    Acoplamento: Retorno: None
+
+    AE: root, colunas_canvas, colunas_frame, scroll_x, scroll_y, titulo_lbl, btn_nova_coluna
+
+    AS: Deve ser chamada após `root` estar inicializado.
+
+    Descrição: Define o layout e scroll da área principal onde as colunas de um quadro são apresentadas e manipuladas.
+
+    Restrição: A janela principal (`root`) deve estar previamente criada.
+
+    """
     global colunas_canvas, colunas_frame, scroll_x, scroll_y, titulo_lbl, btn_nova_coluna
 
     area = ttk.Frame(root, padding=10)
@@ -135,6 +183,22 @@ def _area_quadro():
 
 
 def _barra_inferior():
+    """
+    Nome: _barra_inferior
+
+    Objetivo: Cria a barra inferior da interface com o botão para salvar os dados.
+
+    Acoplamento: Retorno: None
+
+    AE: root, _salvar_estado
+
+    AS: Espera que a janela principal esteja criada e visível.
+
+    Descrição: Adiciona um botão de "Salvar Tudo" na parte inferior da tela, permitindo persistência manual do estado atual.
+
+    Restrição: Depende do root e das funções de salvamento estarem funcionais.
+
+    """
     barra = ttk.Frame(root, padding=10)
     barra.pack(fill="x")
     ttk.Button(barra, text="Salvar Tudo", command=_salvar_estado).pack(side="right")
@@ -142,11 +206,43 @@ def _barra_inferior():
 
 # —— Refresh —— 
 def _atualiza_lista_quadros():
+    """
+    Nome: _atualiza_lista_quadros
+
+    Objetivo: Atualiza visualmente a lista de quadros disponíveis na interface.
+
+    Acoplamento: Retorno: None
+
+    AE: lista_quadros_lb, consultaTodosQuadros
+
+    AS: Lista de quadros precisa estar disponível via função `consultaTodosQuadros`.
+
+    Descrição: Limpa a lista atual e repopula com os títulos dos quadros existentes.
+
+    Restrição: `lista_quadros_lb` precisa estar inicializada.
+
+    """
     lista_quadros_lb.delete(0, tk.END)
     for q in consultaTodosQuadros():
         lista_quadros_lb.insert(tk.END, q["titulo"])
 
 def _on_select_quadro(event=None):
+    """
+    Nome: _on_select_quadro
+
+    Objetivo: Atualiza a interface com as colunas e tarefas do quadro selecionado.
+
+    Acoplamento: Retorno: None
+
+    AE: lista_quadros_lb, quadro_atual, btn_nova_coluna, _mostrar_quadro
+
+    AS: Depende da seleção feita pelo usuário na lista de quadros.
+
+    Descrição: Detecta seleção de um quadro e atualiza a visualização do conteúdo correspondente na área central.
+
+    Restrição: Lista deve conter quadros válidos.
+
+    """
     global quadro_atual
     sel = lista_quadros_lb.curselection()
     if not sel: return
@@ -157,6 +253,22 @@ def _on_select_quadro(event=None):
 
 # —— Display —— 
 def _mostrar_quadro(nome: str):
+    """
+    Nome: _mostrar_quadro
+
+    Objetivo: Exibe na interface todas as colunas e tarefas pertencentes a um quadro específico.
+
+    Acoplamento: Retorno: None
+
+    AE: consultaQuadro, consultaTodasColunas, _criar_coluna_ui, colunas_frame
+
+    AS: Espera que o nome do quadro seja válido e existente.
+
+    Descrição: Atualiza a área central da interface com o conteúdo completo do quadro, incluindo colunas e tarefas.
+
+    Restrição: Quadro informado deve existir e estar bem formatado.
+
+    """
     for w in colunas_frame.winfo_children():
         w.destroy()
     titulo_lbl.config(text=nome)
@@ -170,6 +282,22 @@ def _mostrar_quadro(nome: str):
             _criar_coluna_ui(col)
 
 def _criar_coluna_ui(coluna: dict):
+    """
+    Nome: _criar_coluna_ui
+
+    Objetivo: Gera a interface visual para uma coluna específica e suas tarefas.
+
+    Acoplamento: Retorno: None
+
+    AE: consultaTituloPorId, consultaTarefa, _criar_tarefa_ui
+
+    AS: Espera que os dados da coluna estejam no formato correto e que os IDs de tarefas estejam válidos.
+
+    Descrição: Cria um painel visual para uma coluna, incluindo seus botões de ação e as tarefas dentro dela.
+
+    Restrição: Função assume estrutura específica de dicionário para a coluna.
+
+    """
     frame = ttk.Frame(colunas_frame, padding=10,
                       relief="groove", borderwidth=1)
     frame.pack(side="left", pady=6, padx=8)
@@ -194,6 +322,22 @@ def _criar_coluna_ui(coluna: dict):
               ).pack(pady=2)
 
 def _criar_tarefa_ui(parent, tarefa: dict, nome_coluna: str):
+    """
+    Nome: _criar_tarefa_ui
+
+    Objetivo: Cria os elementos visuais que representam uma tarefa na interface.
+
+    Acoplamento: Retorno: None
+
+    AE: tarefa, nome_coluna, _editar_tarefa, _mover_tarefa, _excluir_tarefa
+
+    AS: Espera receber uma tarefa válida com os campos necessários preenchidos.
+
+    Descrição: Cria um pequeno painel com as informações da tarefa e botões para edição, movimentação e exclusão.
+
+    Restrição: Campos da tarefa devem estar corretamente preenchidos e formatados.
+
+    """
     colors={0:"#FFCDD2",1:"#FFE0B2",2:"#FFF9C4",3:"#C8E6C9",4:"#E0F7FA"}
     bg=colors.get(tarefa["prioridade"],"white")
     frm=tk.Frame(parent,bg=bg,relief="ridge",borderwidth=1,padx=4,pady=4)
@@ -220,11 +364,43 @@ def _criar_tarefa_ui(parent, tarefa: dict, nome_coluna: str):
 
 # —— Actions —— 
 def _novo_quadro():
+    """
+    Nome: _novo_quadro
+
+    Objetivo: Solicita ao usuário o nome e cria um novo quadro.
+
+    Acoplamento: Retorno: None
+
+    AE: _askstring, criaQuadro, _atualiza_lista_quadros
+
+    AS: Espera que o usuário forneça um nome único e válido.
+
+    Descrição: Abre uma caixa de diálogo, coleta o nome do quadro e o cria, atualizando a interface após sucesso.
+
+    Restrição: Não deve ser chamado se a persistência de quadros estiver indisponível.
+
+    """
     nome=_askstring("Novo Quadro","Nome do quadro:")
     if nome and criaQuadro(nome)==0:
         _atualiza_lista_quadros()
 
 def _excluir_quadro():
+    """
+    Nome: _excluir_quadro
+
+    Objetivo: Exclui o quadro atualmente selecionado após confirmação do usuário.
+
+    Acoplamento: Retorno: None
+
+    AE: _askyesno, apagaQuadro, quadro_atual, _atualiza_lista_quadros
+
+    AS: Um quadro precisa estar selecionado previamente.
+
+    Descrição: Remove o quadro da memória e atualiza a interface para refletir a exclusão.
+
+    Restrição: Exclusão é permanente e não pode ser desfeita via interface.
+
+    """
     global quadro_atual
     if not quadro_atual: return
     if _askyesno("Excluir Quadro","Tem certeza?"):
@@ -236,22 +412,86 @@ def _excluir_quadro():
         titulo_lbl.config(text="Selecione um quadro")
 
 def _nova_coluna():
+    """
+    Nome: _nova_coluna
+
+    Objetivo: Adiciona uma nova coluna ao quadro atual.
+
+    Acoplamento: Retorno: None
+
+    AE: quadro_atual, _askstring, criaColuna, _mostrar_quadro
+
+    AS: Requer que um quadro esteja selecionado.
+
+    Descrição: Pede ao usuário o nome da nova coluna e, se fornecido corretamente, a adiciona ao quadro atual.
+
+    Restrição: Coluna só pode ser adicionada a um quadro existente.
+
+    """
     if not quadro_atual: return
     nome=_askstring("Nova Coluna","Nome da coluna:")
     if nome and criaColuna(quadro_atual,nome)==0:
         _mostrar_quadro(quadro_atual)
 
 def _renomear_coluna(coluna:str):
+    """
+    Nome: _renomear_coluna
+
+    Objetivo: Solicita novo nome e renomeia uma coluna existente.
+
+    Acoplamento: Retorno: None
+
+    AE: quadro_atual, _askstring, editaColuna, _mostrar_quadro
+
+    AS: Espera que o quadro atual esteja carregado e a coluna exista.
+
+    Descrição: Abre um prompt de edição e aplica as mudanças no nome da coluna.
+
+    Restrição: Nome novo não pode ser nulo.
+
+    """
     novo=_askstring("Renomear Coluna","Novo nome:", initialvalue=coluna)
     if novo and editaColuna(quadro_atual,coluna,novo)==0:
         _mostrar_quadro(quadro_atual)
 
 def _excluir_coluna(coluna:str):
+    """
+    Nome: _excluir_coluna
+
+    Objetivo: Exclui uma coluna de um quadro após confirmação.
+
+    Acoplamento: Retorno: None
+
+    AE: quadro_atual, _askyesno, apagaColuna, _mostrar_quadro
+
+    AS: Coluna deve existir no quadro atual.
+
+    Descrição: Remove permanentemente a coluna e atualiza a visualização.
+
+    Restrição: Ação é destrutiva e requer confirmação do usuário.
+
+    """
     if _askyesno("Excluir Coluna","Tem certeza?"):
         apagaColuna(quadro_atual,coluna)
         _mostrar_quadro(quadro_atual)
 
 def _nova_tarefa(coluna:str):
+    """
+    Nome: _nova_tarefa
+
+    Objetivo: Cria uma nova tarefa e a adiciona à coluna selecionada.
+
+    Acoplamento: Retorno: None
+
+    AE: quadro_atual, _askstring, _askinteger, criaTarefa, adicionaTarefaAoQuadro, _mostrar_quadro
+
+    AS: Requer quadro e coluna ativos. Dados da tarefa devem ser válidos.
+
+    Descrição: Solicita os dados da tarefa ao usuário, cria e insere no sistema.
+
+    Restrição: Datas devem estar no formato correto. Prioridade entre 0–4.
+
+    """
     if not quadro_atual: return
     titulo=_askstring("Nova Tarefa","Título:")
     if not titulo: return
@@ -269,6 +509,22 @@ def _nova_tarefa(coluna:str):
     _mostrar_quadro(quadro_atual)
 
 def _editar_tarefa(titulo:str):
+    """
+    Nome: _editar_tarefa
+
+     Objetivo: Permite editar os dados de uma tarefa já existente.
+
+    Acoplamento: Retorno: None
+
+    AE: consultaTarefa, _askstring, _askinteger, editaTarefa, _mostrar_quadro
+
+    AS: Tarefa deve estar previamente cadastrada e acessível.
+
+    Descrição: Abre caixas de diálogo para editar título, descrição, datas e prioridade da tarefa.
+
+    Restrição: Campos devem ser preenchidos corretamente."
+
+    """
     st,t=consultaTarefa(titulo)
     if st!=0: return
     novas={}
@@ -287,6 +543,22 @@ def _editar_tarefa(titulo:str):
         _mostrar_quadro(quadro_atual)
 
 def _mover_tarefa(titulo:str,origem:str):
+    """
+    Nome: _mover_tarefa
+
+    Objetivo: Move uma tarefa de uma coluna para outra.
+
+    Acoplamento: Retorno: None
+
+    AE: consultaQuadro, consultaTodasColunas, _askstring, moverTarefaEntreColunas, _mostrar_quadro
+
+    AS: Espera que a tarefa exista e que colunas de destino estejam disponíveis.
+
+    Descrição: Pergunta a nova coluna destino e, se confirmada, move a tarefa.
+
+    Restrição: A coluna destino deve ser diferente da origem e pertencer ao mesmo quadro.
+
+    """
     st,q=consultaQuadro(quadro_atual)
     if st!=0: return
     dests=[c["titulo"] for c in consultaTodasColunas()
@@ -300,11 +572,43 @@ def _mover_tarefa(titulo:str,origem:str):
         _mostrar_quadro(quadro_atual)
 
 def _excluir_tarefa(titulo:str):
+    """
+    Nome: _excluir_tarefa
+
+    Objetivo: Exclui uma tarefa existente após confirmação do usuário.
+
+    Acoplamento: Retorno: None
+
+    AE: _askyesno, apagaTarefa, _mostrar_quadro
+
+    AS: Tarefa deve existir no quadro e coluna atuais.
+
+    Descrição: Remove a tarefa permanentemente do sistema.
+
+    Restrição: Ação irreversível.
+
+    """
     if _askyesno("Excluir Tarefa","Tem certeza?"):
         apagaTarefa(titulo)
         _mostrar_quadro(quadro_atual)
 
 def _salvar_estado():
+    """
+    Nome: _salvar_estado
+
+    Objetivo: Salva todos os quadros e tarefas na persistência atual.
+
+    Acoplamento: Retorno: None
+
+    AE: salvaTarefas, salvaQuadros, _showinfo
+
+    AS: Chamado quando o usuário desejar salvar manualmente o progresso.
+
+    Descrição: Persiste os dados atuais da aplicação e informa sucesso.
+
+    Restrição: Exige que os módulos de salvamento estejam funcionando.
+
+    """
     salvaTarefas()
     salvaQuadros()
     _showinfo("Salvar","Estado gravado com sucesso")
